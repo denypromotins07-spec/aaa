@@ -1,0 +1,44 @@
+[package]
+name = "nexus_ffi"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[lib]
+name = "nexus_ffi"
+crate-type = ["cdylib", "rlib"]
+path = "src/lib.rs"
+
+[dependencies]
+# Core nexus components
+nexus_core = { path = "../nexus_core" }
+
+# Python bindings
+pyo3.workspace = true
+pyo3-asyncio.workspace = true
+
+# Async runtime
+tokio.workspace = true
+
+# Error handling
+thiserror.workspace = true
+
+# Serialization
+serde.workspace = true
+serde_json.workspace = true
+
+# Logging
+tracing.workspace = true
+tracing-subscriber = "0.3"
+
+# NumPy integration
+numpy = "0.20"
+
+# Concurrency
+parking_lot = "0.12"
+
+[features]
+default = ["extension-module"]
+extension-module = ["pyo3/extension-module"]
+abi3 = ["pyo3/abi3-py310"]

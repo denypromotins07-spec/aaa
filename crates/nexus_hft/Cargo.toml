@@ -1,0 +1,36 @@
+[package]
+name = "nexus_hft"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[dependencies]
+# Core nexus components
+nexus_core = { path = "../nexus_core" }
+
+# Async runtime
+tokio.workspace = true
+
+# Error handling
+thiserror.workspace = true
+
+# Logging
+tracing.workspace = true
+
+# Serialization
+serde.workspace = true
+
+# High-frequency trading specific
+rdkafka = { version = "0.36", features = ["cmake-build"] }
+pcap = "2.0"
+
+# Time utilities
+chrono = "0.4"
+
+[dev-dependencies]
+criterion.workspace = true
+
+[[bench]]
+name = "hft_bench"
+harness = false

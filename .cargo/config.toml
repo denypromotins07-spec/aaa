@@ -1,0 +1,60 @@
+# Cargo configuration for NEXUS-OMEGA
+# Optimized for low-latency, high-throughput trading systems
+
+[target.x86_64-unknown-linux-gnu]
+rustflags = [
+    "-C", "target-cpu=native",
+    "-C", "link-arg=-Wl,--as-needed",
+    "-C", "force-frame-pointers=yes",
+]
+
+[target.aarch64-unknown-linux-gnu]
+rustflags = [
+    "-C", "target-cpu=native",
+    "-C", "link-arg=-Wl,--as-needed",
+]
+
+[build]
+# Use the LLD linker for faster linking
+rustflags = ["-C", "link-arg=-fuse-ld=lld"]
+
+# Enable incremental compilation in debug mode
+incremental = true
+
+# Set the default target to the native architecture
+# target = "x86_64-unknown-linux-gnu"
+
+[profile.release]
+# Maximum optimization level
+opt-level = 3
+
+# Enable Link-Time Optimization for cross-module inlining
+lto = "fat"
+
+# Single codegen unit for better optimization across crate boundaries
+codegen-units = 1
+
+# Abort on panic to avoid unwinding overhead in production
+panic = "abort"
+
+# Strip debug symbols from release binaries
+strip = "debuginfo"
+
+[profile.release-debug]
+inherits = "release"
+debug = true
+strip = false
+
+[profile.bench]
+inherits = "release"
+debug = true
+
+[profile.dev]
+opt-level = 0
+debug = true
+panic = "unwind"
+incremental = true
+
+[profile.dev.package."*"]
+# Optimize dependencies even in debug mode for faster testing
+opt-level = 2

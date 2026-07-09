@@ -1,0 +1,50 @@
+```
+# Rust/Cargo
+target/
+Cargo.lock
+*.rs.bk
+*.rmeta
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+.python-version
+.pytest_cache/
+.mypy_cache/
+.coverage
+coverage/
+
+# Dependencies
+node_modules/
+
+# Build artifacts
+build/
+dist/
+*.so
+*.dylib
+*.dll
+
+# Logs
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.local
+*.env.*
+```

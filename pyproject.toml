@@ -1,0 +1,45 @@
+[build-system]
+requires = ["maturin>=1.3,<2.0"]
+build-backend = "maturin"
+
+[project]
+name = "nexus-omega"
+version = "0.1.0"
+description = "NEXUS-OMEGA: Microsecond-latency autonomous AI trading organism"
+readme = "README.md"
+requires-python = ">=3.10"
+classifiers = [
+    "Programming Language :: Rust",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: POSIX :: Linux",
+    "Topic :: Office/Business :: Financial :: Investment",
+]
+dependencies = [
+    "numpy>=1.24",
+    "polars>=0.19",
+    "nautilus_trader>=1.176",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4",
+    "pytest-asyncio>=0.21",
+    "hypothesis>=6.90",
+]
+
+[tool.maturin]
+features = ["pyo3/extension-module"]
+bindings = "pyo3"
+manifest-path = "crates/nexus_ffi/Cargo.toml"
+module-name = "nexus_ffi"
+python-source = "python"
+strip = true
+include = [{ path = "crates/nexus_core/src/**/*", format = "sdist" }]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "B", "C4", "SIM"]
