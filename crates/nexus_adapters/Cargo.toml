@@ -1,0 +1,20 @@
+[package]
+name = "nexus_adapters"
+version = "0.1.0"
+edition = "2021"
+description = "Zero-Allocation Exchange Adapters and Binary Encoders"
+
+[dependencies]
+nexus_core = { path = "../nexus_core" }
+nexus_oms = { path = "../nexus_oms" }
+parking_lot = "0.12"
+thiserror = "1.0"
+tracing = "0.1"
+sha2 = "0.10"
+hmac = "0.12"
+hex = "0.4"
+arrayvec = "0.7"
+itoa = "1.0"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
