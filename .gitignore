@@ -1,50 +1,52 @@
 ```
-# Rust/Cargo
+# Rust/Cargo specific ignores
 target/
 Cargo.lock
-*.rs.bk
-*.rmeta
-
-# Python
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-.Python
-env/
-venv/
-.venv/
-.python-version
-.pytest_cache/
-.mypy_cache/
-.coverage
-coverage/
 
 # Dependencies
-node_modules/
+**/node_modules/
+**/.venv/
+**/venv/
+**/__pycache__/
+**/.mypy_cache/
+**/.pytest_cache/
+**/.gradle/
+**/pip-wheel-metadata/
 
 # Build artifacts
-build/
-dist/
-*.so
-*.dylib
-*.dll
+**/build/
+**/dist/
+**/target/
+**/*.so
+**/*.dylib
+**/*.dll
+**/*.exe
+**/*.o
+**/*.obj
+**/*.a
+**/*.lib
+
+# IDE and editor files
+**/.vscode/
+**/.idea/
+**/*.swp
+**/*.swo
+**/*.tmp
+
+# System files
+**/.DS_Store
+**/Thumbs.db
 
 # Logs
-*.log
+**/*.log
 
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# OS
-.DS_Store
-Thumbs.db
+# Coverage
+**/coverage/
+**/htmlcov/
+**/.coverage
 
 # Environment
-.env
-.env.local
-*.env.*
+**/.env
+**/.env.local
+**/*.env.*
 ```

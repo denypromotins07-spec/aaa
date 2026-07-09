@@ -1,0 +1,21 @@
+[package]
+name = "nexus_orderbook"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[dependencies]
+nexus_core = { path = "../nexus_core" }
+
+# Workspace dependencies
+crossbeam.workspace = true
+parking_lot.workspace = true
+bumpalo.workspace = true
+tracing.workspace = true
+thiserror.workspace = true
+wide.workspace = true
+num.workspace = true
+
+[lib]
+crate-type = ["rlib"]

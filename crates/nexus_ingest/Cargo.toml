@@ -1,0 +1,29 @@
+[package]
+name = "nexus_ingest"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[dependencies]
+nexus_core = { path = "../nexus_core" }
+nexus_orderbook = { path = "../nexus_orderbook" }
+
+# Workspace dependencies
+crossbeam.workspace = true
+parking_lot.workspace = true
+bumpalo.workspace = true
+libc.workspace = true
+memmap2.workspace = true
+simd-json.workspace = true
+serde.workspace = true
+tracing.workspace = true
+thiserror.workspace = true
+wide.workspace = true
+num.workspace = true
+
+[build-dependencies]
+cc = "1.0"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
