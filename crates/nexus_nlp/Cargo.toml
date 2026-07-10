@@ -1,0 +1,42 @@
+[package]
+name = "nexus_nlp"
+version = "0.1.0"
+edition = "2021"
+description = "Stage 9: High-Performance NLP, LLM Inference Bridge & Alternative Data Ingestion"
+
+[dependencies]
+# Async runtime
+tokio = { version = "1.35", features = ["full"] }
+
+# Concurrent data structures
+dashmap = "5.5"
+crossbeam-channel = "0.5"
+
+# Parallel processing
+rayon = "1.8"
+
+# Parser combinators
+nom = "7.1"
+
+# Graph algorithms
+petgraph = "0.6"
+
+# Error handling
+thiserror = "1.0"
+
+# CPU utilities
+num_cpus = "1.16"
+
+# SIMD support (nightly feature)
+portable-simd = { version = "0.1", package = "core_simd", optional = true }
+
+[dev-dependencies]
+criterion = "0.5"
+
+[[bench]]
+name = "nlp_benchmarks"
+harness = false
+
+[features]
+default = []
+simd = ["portable-simd"]
