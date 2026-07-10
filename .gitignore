@@ -3,43 +3,42 @@
 target/
 Cargo.lock
 **/*.rs.bk
+**/*.rlib
 
 # Dependencies
 **/node_modules/
+**/.venv/
+**/venv/
 
-# Logs and temp files
-*.log
-*.tmp
-*.swp
+# Build artifacts
+**/build/
+**/dist/
+**/target/
+
+# IDE/Editor
+.vscode/
+.idea/
+**/*.swp
+**/*.swo
+
+# Logs
+**/*.log
 
 # Environment
 .env
 .env.local
-*.env.*
+.env.*
 
-# Editors
-.vscode/
-.idea/
-*.swp
-*.swo
+# Cache directories
+**/__pycache__/
+**/.mypy_cache/
+**/.pytest_cache/
+**/.ruff_cache/
+**/htmlcov/
+**/coverage/
 
-# OS generated files
-.DS_Store
-Thumbs.db
-
-# Coverage
-coverage/
-htmlcov/
-.coverage
-
-# Build artifacts
-dist/
-build/
-*.exe
-*.dll
-*.so
-*.a
-*.o
-*.obj
-*.out
+# Temporary files
+**/*.tmp
+**/.DS_Store
+**/Thumbs.db
 ```
