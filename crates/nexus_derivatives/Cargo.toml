@@ -1,0 +1,34 @@
+[package]
+name = "nexus_derivatives"
+version = "0.1.0"
+edition = "2021"
+description = "NEXUS-OMEGA Stage 6: High-Performance Derivatives Pricing Engine"
+license = "MIT"
+authors = ["NEXUS-OMEGA Team"]
+keywords = ["options", "derivatives", "pricing", "volatility", "hft"]
+categories = ["finance", "mathematics", "no-std"]
+
+[dependencies]
+# No external dependencies for zero-allocation HFT performance
+# All math implemented with custom polynomial approximations
+
+[dev-dependencies]
+
+[features]
+default = []
+simd = []  # Enable SIMD optimizations for portfolio Greeks
+
+[[bench]]
+name = "pricing_bench"
+harness = false
+required-features = ["simd"]
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+panic = "abort"
+
+[profile.dev]
+opt-level = 0
+debug = true
