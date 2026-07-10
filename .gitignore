@@ -1,59 +1,7 @@
 ```
-# Python
-__pycache__/
+# Compiled and build artifacts
 *.pyc
-*.pyo
-*.pyd
-.Python
-env/
-venv/
-.venv/
-pip-log.txt
-pip-delete-this-directory.txt
-.tox/
-.coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*.cover
-*.log
-.pytest_cache/
-.mypy_cache/
-.hypothesis/
-
-# Rust/Cargo
-target/
-Cargo.lock
-**/*.rs.bk
-*.lock
-
-# Build artifacts
-build/
-dist/
-*.egg-info/
-.deps/
-
-# Editors
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# OS
-.DS_Store
-Thumbs.db
-
-# Environment
-.env
-.env.local
-*.env.*
-
-# Coverage
-coverage/
-htmlcov/
-
-# Compiled
+__pycache__/
 *.o
 *.obj
 *.exe
@@ -61,4 +9,49 @@ htmlcov/
 *.so
 *.a
 *.out
+*.class
+
+# Dependencies
+.venv/
+venv/
+node_modules/
+target/
+.gradle/
+.mypy_cache/
+.pytest_cache/
+.julia/
+zig*/
+
+# Logs and temp files
+*.log
+*.tmp
+*.swp
+*.swo
+
+# Environment
+.env
+.env.local
+.env.*
+
+# Editors
+.vscode/
+.idea/
+
+# Build and distribution
+dist/
+build/
+coverage/
+htmlcov/
+*.tar
+*.zip
+*.gz
+*.bz2
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Rust specific
+Cargo.lock
+*.rs.bk
 ```
