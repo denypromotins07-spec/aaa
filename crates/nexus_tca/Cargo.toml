@@ -1,0 +1,9 @@
+[package]
+name = "nexus_tca"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+nexus_fixed_point = { path = "../nexus_fixed_point" }
+tokio = { version = "1", features = ["full"] }
+thiserror = "1"

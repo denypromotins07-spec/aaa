@@ -2,15 +2,10 @@
 name = "nexus_routing"
 version = "0.1.0"
 edition = "2021"
-description = "Smart Order Routing and Latency Arbitrage Engine"
 
 [dependencies]
-nexus_core = { path = "../nexus_core" }
-nexus_oms = { path = "../nexus_oms" }
-nexus_orderbook = { path = "../nexus_orderbook" }
-parking_lot = "0.12"
-thiserror = "1.0"
-tracing = "0.1"
-
-[lib]
-crate-type = ["cdylib", "rlib"]
+nexus_fixed_point = { path = "../nexus_fixed_point" }
+nexus_brokerage = { path = "../nexus_brokerage" }
+tokio = { version = "1", features = ["full"] }
+dashmap = "5"
+thiserror = "1"

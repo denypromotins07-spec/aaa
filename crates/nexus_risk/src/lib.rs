@@ -1,58 +1,26 @@
-//! Nexus Risk Management Engine - Stage 5 of 50
-//! 
-//! This crate implements:
-//! - Chapter 1: Pre-Trade Risk Gatekeeper (Lock-Free Interceptor)
-//! - Chapter 2: Real-Time Portfolio Risk Metrics (SIMD VaR & Greeks)
-//! - Chapter 3: Velocity-Loss Detectors & Hardware Kill-Switches
-//! - Chapter 4: Margin Cascade & Liquidation Prevention Engine
+//! NEXUS-OMEGA Stage 11: Tail-Risk Survival, Black Swan Modeling & Extreme Value Theory
+//!
+//! This crate implements advanced risk management for extreme market events:
+//! - Chapter 1: Extreme Value Theory (EVT) & Fat Tail Modeling
+//! - Chapter 2: Copulas & Non-Linear Tail Dependence  
+//! - Chapter 3: Multivariate Hawkes Processes & Crash Contagion
+//! - Chapter 4: Doomsday Portfolio Optimizer & Convex Hedging
 
-pub mod gatekeeper;
-pub mod metrics;
-pub mod breakers;
-pub mod margin;
+#![warn(missing_docs)]
+#![warn(rust_2018_idioms)]
+#![forbid(unsafe_code)]
 
-// Re-export main components for convenience
-pub use gatekeeper::pre_trade_interceptor::PreTradeRiskInterceptor;
-pub use gatekeeper::fat_finger_collars::FatFingerValidator;
-pub use gatekeeper::lock_free_order_queue::LockFreeOrderQueue;
+pub mod tail;
+pub mod dependence;
+pub mod contagion;
+pub mod hedging;
 
-pub use metrics::simd_var_calculator::SimdVaRCalculator;
-pub use metrics::covariance_matrix::CovarianceMatrixEngine;
-pub use metrics::portfolio_greeks::PortfolioGreeksAggregator;
-
-pub use breakers::velocity_loss_detector::VelocityLossDetector;
-pub use breakers::global_state_machine::{SystemState, GlobalStateMachine};
-
-pub use margin::liquidation_simulator::ShadowLiquidationSimulator;
-pub use margin::auto_deleverager::AutoDeleveragingEngine;
-pub use margin::cross_venue_aggregator::CrossVenueMarginAggregator;
-
-/// Risk engine configuration
-#[derive(Debug, Clone)]
-pub struct RiskConfig {
-    /// Maximum order size in base units
-    pub max_order_size: u64,
-    /// Fat finger price collar percentage (e.g., 200 = 2%)
-    pub fat_finger_collar_bps: u16,
-    /// Maximum open orders per symbol
-    pub max_open_orders_per_symbol: u32,
-    /// VaR confidence level (e.g., 0.99 for 99%)
-    pub var_confidence_level: f64,
-    /// Velocity loss threshold in USD per millisecond
-    pub velocity_loss_threshold_usd_ms: f64,
-    /// Margin utilization warning threshold (e.g., 0.9 = 90%)
-    pub margin_warning_threshold: f64,
-}
-
-impl Default for RiskConfig {
-    fn default() -> Self {
-        Self {
-            max_order_size: 1_000_000_000, // 1B base units
-            fat_finger_collar_bps: 200,     // 2%
-            max_open_orders_per_symbol: 100,
-            var_confidence_level: 0.99,
-            velocity_loss_threshold_usd_ms: 100.0, // $100k per second
-            margin_warning_threshold: 0.9,
-        }
-    }
-}
+/// Re-export commonly used types for Stage 11
+pub use tail::extreme_value_theory::{ExtremeValueTheory, EvtConfig, EvtFitResult};
+pub use tail::gpd_mle_solver::{GpdParameters, GpdSolver, MleFitResult};
+pub use dependence::student_t_copula::{StudentTCopula, StudentTCopulaConfig};
+pub use dependence::tail_dependence_metric::{TailDependenceCalculator, TailDependenceResult};
+pub use contagion::multivariate_hawkes::{MultivariateHawkesProcess, HawkesConfig};
+pub use contagion::ogata_thinning::{OgataThinningSimulator, SimulationResult};
+pub use hedging::convex_hedge_optimizer::{ConvexHedgeOptimizer, HedgeInstrument, HedgeAllocation};
+pub use hedging::doomsday_state_machine::{DoomsdayStateMachine, DoomsdayState, RiskSignals};

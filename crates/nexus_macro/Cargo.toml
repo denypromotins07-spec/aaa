@@ -1,0 +1,29 @@
+[package]
+name = "nexus_macro"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+# Core numerical libs
+ndarray = { version = "0.15", features = ["serde", "rayon"] }
+ndarray-linalg = { version = "0.16", features = ["openblas-static"] }
+nalgebra = "0.32"
+statrs = "0.16"
+
+# Optimization & Solvers
+argmin = "0.9"
+argmin-ndarray = "0.9"
+
+# Graph algorithms for HRP
+petgraph = "0.6"
+rayon = "1.8"
+
+# SIMD acceleration
+wide = "0.7"
+
+# Workspace deps
+nexus_allocator = { path = "../nexus_allocator" }
+
+[features]
+default = []
+simd = ["wide"]

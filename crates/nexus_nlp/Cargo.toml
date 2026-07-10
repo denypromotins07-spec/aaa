@@ -1,0 +1,56 @@
+[package]
+name = "nexus_nlp"
+version = "0.1.0"
+edition = "2021"
+authors = ["Nexus-Omega Team"]
+license = "MIT"
+description = "Stage 9: High-Performance NLP, LLM Inference Bridge & Alternative Data Ingestion"
+
+[dependencies]
+# Async runtime
+tokio = { workspace = true }
+
+# Zero-copy parsing
+nom = "7.1"
+bytes = "1.5"
+
+# Lock-free data structures
+dashmap = "5.5"
+crossbeam-utils = { workspace = true }
+atomic = "0.6"
+
+# Graph structures
+petgraph = "0.6"
+
+# Serialization
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+# Error handling
+thiserror = { workspace = true }
+
+# Tracing
+tracing = { workspace = true }
+
+# SIMD support
+stdsimd = "0.1"
+
+# Bloom filter
+bloom = "0.3"
+
+# Shared memory for RL environment
+memmap2 = "0.9"
+
+# FFI bindings
+libc = "0.2"
+
+# Rayon for CPU-bound tasks
+rayon = "1.8"
+
+[dev-dependencies]
+criterion = { workspace = true }
+proptest = { workspace = true }
+
+[[bench]]
+name = "nlp_benchmarks"
+harness = false

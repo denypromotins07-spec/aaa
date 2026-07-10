@@ -1,0 +1,41 @@
+[package]
+name = "nexus_mlops"
+version = "0.1.0"
+edition = "2021"
+description = "Stage 16: MLOps, Concept Drift Detection & Shadow Deployment Orchestration"
+
+[dependencies]
+# Core async runtime
+tokio = { version = "1.35", features = ["full"] }
+
+# Lock-free atomic operations for hot-swapping
+arc-swap = "1.6"
+crossbeam = "0.8"
+
+# Numerical computing
+ndarray = "0.15"
+nalgebra = "0.32"
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+bincode = "1.3"
+
+# Logging
+tracing = "0.1"
+log = "0.4"
+
+# Error handling
+thiserror = "1.0"
+
+# Stage dependencies (internal)
+# nexus_allocator = { path = "../nexus_allocator" }
+# nexus_rl = { path = "../nexus_rl" }
+
+[dev-dependencies]
+criterion = "0.5"
+rand = "0.8"
+
+[[bench]]
+name = "drift_detection"
+harness = false

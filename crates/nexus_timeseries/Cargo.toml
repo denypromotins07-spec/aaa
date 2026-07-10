@@ -1,0 +1,32 @@
+[package]
+name = "nexus_timeseries"
+version = "0.1.0"
+edition = "2021"
+description = "NEXUS-OMEGA Stage 18: Advanced Time-Series Mathematics (FracDiff, FFT, Wavelets, Information Theory)"
+authors = ["NEXUS-OMEGA Team"]
+
+[dependencies]
+# No external dependencies for zero-allocation core
+# Optional SIMD support via target features
+
+[features]
+default = []
+simd = []  # Enable AVX2 SIMD acceleration
+
+[dev-dependencies]
+
+[lib]
+name = "nexus_timeseries"
+path = "src/lib.rs"
+
+[[test]]
+name = "fracdiff_tests"
+path = "tests/fracdiff_integration.rs"
+
+[[test]]
+name = "spectral_tests"  
+path = "tests/spectral_integration.rs"
+
+[[test]]
+name = "info_theory_tests"
+path = "tests/info_theory_integration.rs"

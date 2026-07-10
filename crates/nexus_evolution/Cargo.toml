@@ -1,0 +1,50 @@
+[package]
+name = "nexus_evolution"
+version = "0.1.0"
+edition = "2021"
+authors = ["NEXUS-OMEGA Team"]
+description = "Stage 10: Autonomous Strategy Evolution, Genetic Programming & JIT Code Generation"
+license = "MIT"
+repository = "https://github.com/nexus-omega/nexus-evolution"
+
+[dependencies]
+# Arena allocator for zero-copy AST nodes
+bumpalo = "3.14"
+
+# Cranelift JIT compilation
+cranelift-codegen = { version = "0.105", features = ["std"] }
+cranelift-frontend = "0.105"
+cranelift-jit = "0.105"
+cranelift-module = "0.105"
+cranelift-native = "0.105"
+
+# Random number generation
+rand = "0.8"
+rand_chacha = "0.3"
+
+# Parallel evaluation (optional)
+rayon = { version = "1.8", optional = true }
+
+# Serialization for distributed evaluation
+serde = { version = "1.0", features = ["derive"], optional = true }
+serde_json = { version = "1.0", optional = true }
+
+# PyO3 bindings for Python integration (optional)
+pyo3 = { version = "0.20", features = ["extension-module"], optional = true }
+
+[features]
+default = ["parallel"]
+parallel = ["rayon"]
+distributed = ["serde", "serde_json", "pyo3"]
+
+[dev-dependencies]
+criterion = "0.5"
+
+[[bench]]
+name = "evolution_bench"
+harness = false
+required-features = ["parallel"]
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+path = "src/lib.rs"

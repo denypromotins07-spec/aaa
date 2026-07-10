@@ -1,47 +1,20 @@
 ```
-# Dependencies
+# Rust/Cargo specific ignores
 target/
 Cargo.lock
 
-# Python
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-.Python
-env/
-venv/
-.venv/
-.ENV
-.ENV.*
-requirements.txt.bak
+# Dependencies
+vendor/
 
-# Logs
+# Build artifacts
+**/*.rs.bk
+**/*.rlib
+
+# Logs and temp files
 *.log
+*.tmp
 
-# OS
+# OS generated files
 .DS_Store
 Thumbs.db
-
-# Rust
-**/target/
-Cargo.lock
-
-# Temporary files
-*.tmp
-*.temp
-*.bak
-*.swp
-*.swo
-
-# Coverage
-.coverage
-htmlcov/
-coverage/
-
-# Environment variables
-.env
-.env.local
-.env.*
-!env.example
 ```
