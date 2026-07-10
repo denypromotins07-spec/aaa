@@ -1,31 +1,14 @@
 ```
-# Compiled and build artifacts
-*.pyc
-__pycache__/
-*.o
-*.obj
-*.exe
-*.dll
-*.so
-*.a
-*.out
-build/
-dist/
+# Dependencies
 target/
 
-# Dependencies
-.venv/
-venv/
-node_modules/
-.mypy_cache/
-.pytest_cache/
-.gradle/
+# Compiled and build artifacts
+**/*.rs.bk
+**/Cargo.lock
 
 # Logs and temp files
 *.log
 *.tmp
-*.swp
-*.swo
 
 # Environment
 .env
@@ -36,17 +19,7 @@ node_modules/
 .vscode/
 .idea/
 
-# Rust specific
+# Rust-specific
+**/target/
 Cargo.lock
-target/
-**/*.rs.bk
-
-# System files
-.DS_Store
-Thumbs.db
-
-# Coverage
-coverage/
-htmlcov/
-.coverage
 ```
