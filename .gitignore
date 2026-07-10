@@ -1,22 +1,47 @@
 ```
-# Rust/Cargo
+# Dependencies
 target/
 Cargo.lock
-**/*.rs.bk
-**/*.tmp
 
-# Dependencies
-vendor/
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+.ENV
+.ENV.*
+requirements.txt.bak
 
 # Logs
 *.log
 
-# OS generated files
+# OS
 .DS_Store
 Thumbs.db
+
+# Rust
+**/target/
+Cargo.lock
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.swp
+*.swo
+
+# Coverage
+.coverage
+htmlcov/
+coverage/
 
 # Environment variables
 .env
 .env.local
 .env.*
+!env.example
 ```
