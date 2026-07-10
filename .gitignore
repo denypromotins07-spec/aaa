@@ -1,6 +1,50 @@
 ```
+# Rust/Cargo
 target/
 Cargo.lock
-**/target/
-**/Cargo.lock
+**/*.rs.bk
+**/*.rlib
+
+# Dependencies
+**/node_modules/
+**/.venv/
+**/venv/
+**/__pycache__/
+**/.mypy_cache/
+**/.pytest_cache/
+
+# Build artifacts
+**/build/
+**/dist/
+**/out/
+**/*.so
+**/*.dylib
+**/*.dll
+**/*.exe
+**/*.o
+**/*.obj
+
+# Logs
+**/*.log
+
+# Environment
+.env
+.env.local
+.env.*
+
+# Editors
+.vscode/
+.idea/
+**/*.swp
+**/*.swo
+**/*.tmp
+
+# Coverage
+coverage/
+htmlcov/
+.coverage
+
+# OS
+.DS_Store
+Thumbs.db
 ```
