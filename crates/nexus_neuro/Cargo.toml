@@ -1,0 +1,30 @@
+[package]
+name = "nexus_neuro"
+version = "0.1.0"
+edition = "2021"
+description = "Neuromorphic computing, Spiking Neural Networks (SNNs), and Event-Camera Vision for NEXUS-OMEGA"
+license = "MIT"
+
+[dependencies]
+# Core dependencies from workspace
+bumpalo = { workspace = true }
+crossbeam-utils = { workspace = true }
+parking_lot = { workspace = true }
+tokio = { workspace = true }
+tracing = { workspace = true }
+thiserror = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+
+# SIMD support
+stdsimd = "0.1"
+
+# Atomic operations (built-in to std)
+
+[dev-dependencies]
+criterion = { workspace = true }
+proptest = { workspace = true }
+
+[[bench]]
+name = "lif_bench"
+harness = false
