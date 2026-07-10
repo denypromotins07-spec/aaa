@@ -1,0 +1,16 @@
+[package]
+name = "nexus_mm"
+version = "0.1.0"
+edition = "2021"
+description = "Stage 15: High-Frequency Market Making with Avellaneda-Stoikov PDE Solvers"
+license = "MIT"
+
+[dependencies]
+# Stage 1 dependencies (zero-alloc monorepo foundation)
+nexus_allocator = { path = "../nexus_allocator", optional = true }
+
+[dev-dependencies]
+
+[features]
+default = []
+std = ["nexus_allocator"]
