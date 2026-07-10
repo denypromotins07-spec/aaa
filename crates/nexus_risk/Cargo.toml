@@ -4,7 +4,7 @@ version.workspace = true
 edition.workspace = true
 authors.workspace = true
 license.workspace = true
-description = "Stage 5: Dynamic Risk Management, Real-Time Circuit Breakers & Margin Cascade Prevention"
+description = "Stage 11: Tail-Risk Survival, Black Swan Modeling & Extreme Value Theory (EVT)"
 
 [dependencies]
 # Workspace dependencies
@@ -15,22 +15,36 @@ tracing.workspace = true
 thiserror.workspace = true
 serde.workspace = true
 serde_json.workspace = true
+rayon.workspace = true
 
 # Nexus core components
 nexus_core = { path = "../nexus_core" }
 nexus_oms = { path = "../nexus_oms" }
 nexus_execution = { path = "../nexus_execution" }
 
-# SIMD support - using std::simd (nightly) or portable-simd
+# Numerical linear algebra
+ndarray = { version = "0.15", features = ["serde", "rayon"] }
+ndarray-linalg = { version = "0.16", features = ["openblas-static"] }
+nalgebra = "0.32"
+statrs = "0.16"
+
+# SIMD acceleration via portable-simd
 portable-simd = { version = "0.1", package = "core_simd", optional = true }
+
+# Specialized math functions
+special = "0.10"
+log = "0.4"
+
+# Random number generation
+rand = "0.8"
+rand_distr = "0.4"
+rand_chacha = "0.3"
 
 # For eBPF integration
 libbpf-rs = { version = "0.24", optional = true }
 
-# Math utilities
-nalgebra = "0.32"
-rand = "0.8"
-rand_distr = "0.4"
+# Time handling
+chrono = "0.4"
 
 [features]
 default = []
@@ -42,5 +56,5 @@ criterion.workspace = true
 proptest.workspace = true
 
 [[bench]]
-name = "risk_benchmarks"
+name = "evt_benchmarks"
 harness = false
