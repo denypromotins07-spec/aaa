@@ -1,0 +1,20 @@
+[package]
+name = "nexus_statarb"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+description = "Stage 7: High-Frequency Statistical Arbitrage, Dynamic Cointegration & Pairs Trading"
+
+[dependencies]
+# Use workspace dependencies
+bumpalo = { workspace = true }
+crossbeam-utils = { workspace = true }
+parking_lot = { workspace = true }
+thiserror = { workspace = true }
+serde = { workspace = true }
+tracing = { workspace = true }
+
+[features]
+default = []
+simd = []
