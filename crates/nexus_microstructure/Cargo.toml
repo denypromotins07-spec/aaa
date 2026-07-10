@@ -1,0 +1,33 @@
+[package]
+name = "nexus_microstructure"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+# Core math and concurrency
+num-bigint = "0.4"
+num-traits = "0.2"
+dashmap = "5.5"
+parking_lot = "0.12"
+atomic-waker = "1.1"
+
+# Randomness and cryptography for stealth
+rand = "0.8"
+rand_chacha = "0.3"
+getrandom = "0.2"
+
+# Data structures
+ringbuf = "0.3"
+
+# Error handling
+thiserror = "1.0"
+
+# Logging
+log = "0.4"
+
+[dev-dependencies]
+criterion = "0.5"
+
+[[bench]]
+name = "microstructure_bench"
+harness = false
