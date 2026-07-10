@@ -1,0 +1,36 @@
+[package]
+name = "nexus_quantum"
+version = "0.1.0"
+edition = "2021"
+authors = ["Nexus-Omega Team"]
+license = "MIT"
+description = "Stage 21: Quantum Computing Infrastructure, QAOA Portfolio Optimization & Annealing"
+
+[dependencies]
+# Core workspace dependencies
+tokio = { workspace = true }
+tracing = { workspace = true }
+thiserror = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+ndarray = "0.15"
+ndarray-linalg = "0.16"
+rand = "0.8"
+rand_distr = "0.4"
+rayon = "1.8"
+num-traits = "0.2"
+
+# Optional D-Wave API client (dwave-api is not on crates.io, using reqwest for REST)
+reqwest = { version = "0.11", features = ["json"], optional = true }
+url = "2.5"
+
+[features]
+default = []
+dwave-hybrid = ["reqwest"]
+
+[dev-dependencies]
+criterion = "0.5"
+
+[[bench]]
+name = "qubo_benchmarks"
+harness = false
