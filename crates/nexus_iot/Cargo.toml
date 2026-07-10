@@ -1,0 +1,40 @@
+[package]
+name = "nexus_iot"
+version = "0.1.0"
+edition = "2021"
+description = "DePIN IoT Sensor Swarm & Edge Compute Alpha Engine for NEXUS-OMEGA"
+
+[dependencies]
+# Async runtime
+tokio = { version = "1.35", features = ["full"] }
+
+# WASM runtime
+wasmtime = "15.0"
+
+# SIMD acceleration
+stdsimd = "0.1"
+
+# Networking
+bytes = "1.5"
+
+# Error handling
+thiserror = "1.0"
+
+# Time handling
+chrono = "0.4"
+
+# Serialization (optional, for network transport)
+serde = { version = "1.0", features = ["derive"], optional = true }
+serde_json = { version = "1.0", optional = true }
+
+[features]
+default = []
+full = ["serde", "serde_json"]
+
+[dev-dependencies]
+criterion = "0.5"
+
+[[bench]]
+name = "fft_bench"
+harness = false
+path = "benches/fft_bench.rs"

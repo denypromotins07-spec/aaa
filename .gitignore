@@ -1,34 +1,24 @@
 ```
-# Compiled and build artifacts
-*.o
-*.obj
-*.a
-*.lib
-*.dll
-*.so
-*.dylib
-*.exe
-*.out
+# Rust/Cargo specific
+target/
+Cargo.lock
+*.rs.bk
+*.rlib
 
 # Dependencies
-target/
+vendor/
+
+# Build artifacts
 **/target/
 
-# Logs and temp files
+# Logs
 *.log
+
+# Temporary files
 *.tmp
-*.swp
+*.temp
 
-# Editors
-.vscode/
-.idea/
-
-# Coverage reports
-coverage/
-htmlcov/
-.coverage
-
-# Rust-specific
-Cargo.lock
-**/*.rs.bk
+# OS generated files
+.DS_Store
+Thumbs.db
 ```
