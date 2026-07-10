@@ -4,6 +4,7 @@ members = [
     "crates/nexus_core",
     "crates/nexus_ffi",
     "crates/nexus_hft",
+    "crates/nexus_statarb",
 ]
 
 [workspace.package]

@@ -1,0 +1,46 @@
+[package]
+name = "nexus_risk"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+description = "Stage 5: Dynamic Risk Management, Real-Time Circuit Breakers & Margin Cascade Prevention"
+
+[dependencies]
+# Workspace dependencies
+crossbeam-utils.workspace = true
+parking_lot.workspace = true
+tokio.workspace = true
+tracing.workspace = true
+thiserror.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+
+# Nexus core components
+nexus_core = { path = "../nexus_core" }
+nexus_oms = { path = "../nexus_oms" }
+nexus_execution = { path = "../nexus_execution" }
+
+# SIMD support - using std::simd (nightly) or portable-simd
+portable-simd = { version = "0.1", package = "core_simd", optional = true }
+
+# For eBPF integration
+libbpf-rs = { version = "0.24", optional = true }
+
+# Math utilities
+nalgebra = "0.32"
+rand = "0.8"
+rand_distr = "0.4"
+
+[features]
+default = []
+simd-nightly = ["portable-simd"]
+ebpf-killswitch = ["libbpf-rs"]
+
+[dev-dependencies]
+criterion.workspace = true
+proptest.workspace = true
+
+[[bench]]
+name = "risk_benchmarks"
+harness = false

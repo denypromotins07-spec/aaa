@@ -1,0 +1,17 @@
+[package]
+name = "nexus_rl"
+version = "0.1.0"
+edition = "2021"
+description = "High-Performance RL Environment with Zero-Copy Shared Memory Interface"
+license = "MIT"
+
+[dependencies]
+libc = "0.2"
+spin = "0.9"
+rand = "0.8"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[features]
+default = []
