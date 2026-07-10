@@ -1,20 +1,64 @@
 ```
-# Rust/Cargo specific ignores
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.log
+.pytest_cache/
+.mypy_cache/
+.hypothesis/
+
+# Rust/Cargo
 target/
 Cargo.lock
-
-# Dependencies
-vendor/
+**/*.rs.bk
+*.lock
 
 # Build artifacts
-**/*.rs.bk
-**/*.rlib
+build/
+dist/
+*.egg-info/
+.deps/
 
-# Logs and temp files
-*.log
-*.tmp
+# Editors
+.vscode/
+.idea/
+*.swp
+*.swo
 
-# OS generated files
+# OS
 .DS_Store
 Thumbs.db
+
+# Environment
+.env
+.env.local
+*.env.*
+
+# Coverage
+coverage/
+htmlcov/
+
+# Compiled
+*.o
+*.obj
+*.exe
+*.dll
+*.so
+*.a
+*.out
 ```
