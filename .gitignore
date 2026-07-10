@@ -25,4 +25,15 @@ vendor/
 # OS generated files
 .DS_Store
 Thumbs.db
+
+# Coverage
+coverage/
+htmlcov/
+.coverage
+
+# Build artifacts
+**/build/
+**/dist/
+**/bin/
+**/lib/
 ```
