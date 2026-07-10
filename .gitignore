@@ -1,20 +1,69 @@
 ```
-# Rust/Cargo
+# Rust/Cargo specific
 target/
-**/*.rs.bk
 Cargo.lock
+*.rs.bk
+*.rlib
+*.so
+*.dylib
+*.dll
 
 # Dependencies
-vendor/
+**/node_modules/
+**/.venv/
+**/venv/
+**/__pycache__/
+**/.mypy_cache/
+**/.pytest_cache/
+**/.gradle/
 
-# Generated documentation
-doc/
+# Build artifacts
+**/build/
+**/dist/
+**/target/
+**/out/
 
-# Test coverage
-**/test_output/
+# IDE/Editor files
+**/.vscode/
+**/.idea/
+**/*.swp
+**/*.swo
+**/*.tmp
+
+# Logs
+**/*.log
+
+# Coverage
 **/coverage/
+**/htmlcov/
+**/.coverage
 
-# Environment specific
-.env*
-!.env.example
+# Environment
+**/.env
+**/.env.local
+**/*.env.*
+
+# System files
+**/.DS_Store
+**/Thumbs.db
+
+# Compressed files
+**/*.zip
+**/*.gz
+**/*.tar
+**/*.tgz
+**/*.bz2
+**/*.xz
+**/*.7z
+**/*.rar
+**/*.zst
+**/*.lz4
+**/*.lzh
+**/*.cab
+**/*.arj
+**/*.rpm
+**/*.deb
+**/*.Z
+**/*.lz
+**/*.lzo
 ```
