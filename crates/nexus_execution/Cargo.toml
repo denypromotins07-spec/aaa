@@ -1,0 +1,16 @@
+[package]
+name = "nexus_execution"
+version = "0.1.0"
+edition = "2021"
+description = "Algorithmic Execution State Machines (Iceberg, POV, VWAP)"
+
+[dependencies]
+nexus_core = { path = "../nexus_core" }
+nexus_oms = { path = "../nexus_oms" }
+nexus_orderbook = { path = "../nexus_orderbook" }
+parking_lot = "0.12"
+thiserror = "1.0"
+tracing = "0.1"
+
+[lib]
+crate-type = ["cdylib", "rlib"]

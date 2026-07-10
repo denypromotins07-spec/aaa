@@ -1,0 +1,49 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/nexus_core",
+    "crates/nexus_ffi",
+    "crates/nexus_hft",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+authors = ["Nexus-Omega Team"]
+license = "MIT"
+repository = "https://github.com/nexus-omega/nexus-omega"
+
+[workspace.dependencies]
+# Core dependencies
+bumpalo = { version = "3.14", features = ["allocator_api"] }
+crossbeam-utils = "0.8"
+parking_lot = "0.12"
+tokio = { version = "1.35", features = ["full"] }
+tracing = "0.1"
+thiserror = "1.0"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# FFI and Python bindings
+pyo3 = { version = "0.20", features = ["extension-module", "abi3-py310"] }
+pyo3-asyncio = { version = "0.20", features = ["tokio-runtime"] }
+
+# High-frequency trading specific
+rdkafka = { version = "0.36", features = ["cmake-build"] }
+pcap = "2.0"
+
+# Benchmarking and testing
+criterion = "0.5"
+proptest = "1.4"
+
+[profile.release]
+opt-level = 3
+lto = "fat"
+codegen-units = 1
+panic = "abort"
+strip = true
+
+[profile.dev]
+opt-level = 0
+debug = true
+panic = "unwind"

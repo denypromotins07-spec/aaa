@@ -1,0 +1,15 @@
+[package]
+name = "nexus_oms"
+version = "0.1.0"
+edition = "2021"
+description = "Lock-free Order Management System with fixed-point math"
+
+[dependencies]
+nexus_core = { path = "../nexus_core" }
+crossbeam-queue = "0.3"
+parking_lot = "0.12"
+thiserror = "1.0"
+tracing = "0.1"
+
+[lib]
+crate-type = ["cdylib", "rlib"]

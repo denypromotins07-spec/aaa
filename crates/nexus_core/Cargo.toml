@@ -1,0 +1,42 @@
+[package]
+name = "nexus_core"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[dependencies]
+# Memory management
+bumpalo.workspace = true
+static_assertions = "1.1"
+
+# Concurrency primitives
+crossbeam-utils.workspace = true
+parking_lot.workspace = true
+
+# Async runtime
+tokio.workspace = true
+
+# Error handling
+thiserror.workspace = true
+
+# Serialization
+serde.workspace = true
+
+# Logging
+tracing.workspace = true
+
+# Time utilities
+chrono = "0.4"
+
+[dev-dependencies]
+criterion.workspace = true
+proptest.workspace = true
+
+[[bench]]
+name = "spsc_bench"
+harness = false
+
+[[bench]]
+name = "arena_bench"
+harness = false
