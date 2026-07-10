@@ -1,21 +1,21 @@
 ```
-# Rust/Cargo specific ignores
+# Rust/Cargo specific
 target/
 Cargo.lock
 **/*.rs.bk
-**/*.rlib
 
 # Dependencies
-vendor/
+**/node_modules/
 
 # Logs and temp files
 *.log
 *.tmp
+*.swp
 
 # Environment
 .env
 .env.local
-.env.*
+*.env.*
 
 # Editors
 .vscode/
@@ -26,4 +26,20 @@ vendor/
 # OS generated files
 .DS_Store
 Thumbs.db
+
+# Coverage
+coverage/
+htmlcov/
+.coverage
+
+# Build artifacts
+dist/
+build/
+*.exe
+*.dll
+*.so
+*.a
+*.o
+*.obj
+*.out
 ```

@@ -1,11 +1,16 @@
 [package]
-name = "nexus_routing"
+name = "nexus_brokerage"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
 nexus_fixed_point = { path = "../nexus_fixed_point" }
-nexus_brokerage = { path = "../nexus_brokerage" }
+nexus_allocator = { path = "../nexus_allocator" }
 tokio = { version = "1", features = ["full"] }
 dashmap = "5"
+atomic = "0.6"
+bytes = "1"
 thiserror = "1"
+
+[lib]
+path = "src/lib.rs"
