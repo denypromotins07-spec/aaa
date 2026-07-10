@@ -1,354 +1,387 @@
 """
-Spiking Conv2D Layer for Event-Camera Vision
+Spiking Convolutional Neural Network Layers.
 
-Implements convolutional layers optimized for sparse spike data from
-event cameras. Uses efficient sparse convolution algorithms to process
-Address Event Representation (AER) data without converting to dense frames.
+Implements convolutional layers for Spiking Neural Networks with event-driven computation,
+sparse spike propagation, and efficient GPU utilization for neuromorphic vision tasks.
 """
 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from typing import Tuple, Optional, List
-from surrogate_gradient_functions import SurrogateGradientFunction
+from typing import Tuple, Optional, Dict, Any
+from dataclasses import dataclass
+
+
+@dataclass
+class SpikingConvConfig:
+    """Configuration for spiking convolutional layers."""
+    # Convolution parameters
+    in_channels: int = 3
+    out_channels: int = 32
+    kernel_size: int = 3
+    stride: int = 1
+    padding: int = 1
+    
+    # Neuron parameters
+    threshold: float = 1.0
+    decay: float = 0.9
+    refractory_period: int = 2
+    
+    # Surrogate gradient alpha
+    surrogate_alpha: float = 1.0
+    
+    # Whether to use batch normalization
+    use_bn: bool = True
+    
+    # Dropout rate
+    dropout: float = 0.0
 
 
 class SpikingConv2d(nn.Module):
     """
-    Spiking 2D Convolutional Layer.
+    Spiking 2D Convolutional layer.
     
-    Processes spike tensors and generates output spikes using LIF neuron dynamics.
-    Optimized for sparse input from event cameras.
+    Combines standard convolution with Leaky Integrate-and-Fire (LIF) neuron dynamics.
+    Processes spike events through convolutional filters and generates output spikes.
     """
     
-    def __init__(self, in_channels: int, out_channels: int,
-                 kernel_size: int = 3, stride: int = 1, padding: int = 1,
-                 threshold: float = 1.0, decay: float = 0.9,
-                 surrogate_type: str = 'fast_sigmoid', alpha: float = 1.0,
-                 bias: bool = True):
+    def __init__(self, config: SpikingConvConfig):
         super().__init__()
         
-        self.in_channels = in_channels
-        self.out_channels = out_channels
-        self.kernel_size = kernel_size
-        self.stride = stride
-        self.padding = padding
-        self.threshold = threshold
-        self.decay = decay
-        self.surrogate_type = surrogate_type
-        self.alpha = alpha
+        self.config = config
         
-        # Convolutional weights
-        self.conv = nn.Conv2d(in_channels, out_channels, kernel_size, 
-                              stride, padding, bias=bias)
+        # Convolutional layer
+        self.conv = nn.Conv2d(
+            config.in_channels,
+            config.out_channels,
+            config.kernel_size,
+            stride=config.stride,
+            padding=config.padding,
+            bias=not config.use_bn
+        )
         
-        # BatchNorm for stability
-        self.bn = nn.BatchNorm2d(out_channels)
+        # Batch normalization (optional)
+        self.bn = nn.BatchNorm2d(config.out_channels) if config.use_bn else None
         
-        # Surrogate gradient function
-        self.spike_fn = SurrogateGradientFunction.apply
+        # Initialize weights
+        self._initialize_weights()
+        
+        # State buffers
+        self.register_buffer('membrane_potential', None)
+        self.register_buffer('refractory_count', None)
+        self.register_buffer('spike_threshold', torch.tensor(config.threshold))
+        
+    def _initialize_weights(self):
+        """Initialize convolution weights using He initialization."""
+        nn.init.kaiming_normal_(self.conv.weight, mode='fan_out', nonlinearity='relu')
+        if self.conv.bias is not None:
+            nn.init.zeros_(self.conv.bias)
     
-    def forward(self, spikes: torch.Tensor, 
-                membrane: Optional[torch.Tensor] = None) -> Tuple[torch.Tensor, torch.Tensor]:
+    def reset_state(self, batch_size: int, spatial_shape: Tuple[int, int], device: torch.device):
+        """Reset membrane potential and refractory state."""
+        c = self.config.out_channels
+        h, w = spatial_shape
+        
+        self.membrane_potential = torch.zeros(batch_size, c, h, w, device=device)
+        self.refractory_count = torch.zeros(batch_size, c, h, w, device=device, dtype=torch.int)
+    
+    def forward(self, 
+                input_spikes: torch.Tensor,
+                time_window: int = 1
+                ) -> torch.Tensor:
         """
-        Forward pass for spiking convolution.
+        Process input spikes through convolution and generate output spikes.
         
         Args:
-            spikes: Input spike tensor (batch, channels, height, width)
-            membrane: Previous membrane potential (optional)
-        
-        Returns:
-            output_spikes: Output spike tensor
-            new_membrane: Updated membrane potential
-        """
-        batch_size = spikes.shape[0]
-        device = spikes.device
-        
-        # Initialize membrane if not provided
-        if membrane is None:
-            membrane = torch.zeros(batch_size, self.out_channels,
-                                   spikes.shape[2], spikes.shape[3], device=device)
-        
-        # Convolve input spikes
-        conv_output = self.conv(spikes)
-        conv_output = self.bn(conv_output)
-        
-        # Update membrane potential with decay
-        membrane = self.decay * membrane * (1 - (membrane > self.threshold).float()) + conv_output
-        
-        # Generate output spikes with surrogate gradient
-        output_spikes = self.spike_fn(membrane, self.threshold,
-                                       self.surrogate_type, self.alpha, self.training)
-        
-        # Reset membrane after spike
-        membrane = membrane * (1 - output_spikes)
-        
-        return output_spikes, membrane
-
-
-class SpikingConvBlock(nn.Module):
-    """
-    Block of spiking convolution + pooling for building deep SNNs.
-    """
-    
-    def __init__(self, in_channels: int, out_channels: int,
-                 kernel_size: int = 3, pool_size: int = 2,
-                 threshold: float = 1.0, decay: float = 0.9,
-                 surrogate_type: str = 'fast_sigmoid', alpha: float = 1.0):
-        super().__init__()
-        
-        self.conv = SpikingConv2d(
-            in_channels, out_channels, kernel_size,
-            threshold=threshold, decay=decay,
-            surrogate_type=surrogate_type, alpha=alpha
-        )
-        self.pool = nn.AvgPool2d(pool_size)
-    
-    def forward(self, spikes: torch.Tensor,
-                membrane: Optional[torch.Tensor] = None) -> Tuple[torch.Tensor, torch.Tensor]:
-        output_spikes, new_membrane = self.conv(spikes, membrane)
-        pooled_spikes = self.pool(output_spikes)
-        pooled_membrane = self.pool(new_membrane)
-        return pooled_spikes, pooled_membrane
-
-
-class EventCameraSNN(nn.Module):
-    """
-    Complete SNN architecture for event-camera vision processing.
-    
-    Takes AER events converted to spike tensors and processes them
-    through multiple spiking convolutional layers.
-    """
-    
-    def __init__(self, input_shape: Tuple[int, int, int] = (2, 128, 128),
-                 num_classes: int = 10,
-                 base_channels: int = 32,
-                 threshold: float = 1.0,
-                 decay: float = 0.9,
-                 timesteps: int = 10):
-        super().__init__()
-        
-        self.input_shape = input_shape
-        self.timesteps = timesteps
-        
-        # Feature extraction layers
-        self.features = nn.Sequential(
-            SpikingConvBlock(input_shape[0], base_channels, 
-                            kernel_size=3, pool_size=2,
-                            threshold=threshold, decay=decay),
-            SpikingConvBlock(base_channels, base_channels * 2,
-                            kernel_size=3, pool_size=2,
-                            threshold=threshold, decay=decay),
-            SpikingConvBlock(base_channels * 2, base_channels * 4,
-                            kernel_size=3, pool_size=2,
-                            threshold=threshold, decay=decay),
-        )
-        
-        # Compute feature map size after pooling
-        with torch.no_grad():
-            test_input = torch.zeros(1, *input_shape)
-            test_out, _ = self.features(test_input, None)
-            self.feature_size = test_out.shape[1] * test_out.shape[2] * test_out.shape[3]
-        
-        # Classification head
-        self.classifier = nn.Sequential(
-            nn.Linear(self.feature_size, base_channels * 8),
-            nn.ReLU(),
-            nn.Dropout(0.5),
-            nn.Linear(base_channels * 8, num_classes),
-        )
-    
-    def forward(self, event_tensor: torch.Tensor) -> torch.Tensor:
-        """
-        Process event tensor through SNN.
-        
-        Args:
-            event_tensor: Shape (batch, timesteps, channels, height, width)
-                         where each timestep contains accumulated events
-        
-        Returns:
-            class_logits: Classification logits
-        """
-        batch_size = event_tensor.shape[0]
-        
-        # Accumulate spikes over timesteps
-        accumulated_spikes = None
-        feature_membranes = [None] * len(self.features)
-        
-        for t in range(min(event_tensor.shape[1], self.timesteps)):
-            spikes = event_tensor[:, t]  # (batch, channels, H, W)
+            input_spikes: Input spike tensor (batch, time, channels, height, width) or
+                         static input (batch, channels, height, width)
+            time_window: Number of time steps to process
             
-            # Pass through feature layers
-            current_spikes = spikes
-            for i, layer in enumerate(self.features):
-                current_spikes, feature_membranes[i] = layer(
-                    current_spikes, feature_membranes[i]
+        Returns:
+            Output spike tensor (batch, time, out_channels, height, width)
+        """
+        # Handle static vs temporal input
+        if input_spikes.dim() == 4:
+            # Static input: treat as single time step
+            input_spikes = input_spikes.unsqueeze(1)
+        
+        batch_size, seq_len, _, height, width = input_spikes.shape
+        
+        # Initialize state if needed
+        if self.membrane_potential is None:
+            self.reset_state(batch_size, (height, width), input_spikes.device)
+        
+        output_spikes = []
+        
+        for t in range(min(seq_len, time_window)):
+            input_t = input_spikes[:, t, :, :, :]
+            
+            # Convolve input spikes
+            conv_output = self.conv(input_t)
+            
+            # Apply batch normalization
+            if self.bn is not None:
+                conv_output = self.bn(conv_output)
+            
+            # Update membrane potential (LIF dynamics)
+            self.membrane_potential = self.config.decay * self.membrane_potential + conv_output
+            
+            # Generate spikes
+            output_spikes_t = (self.membrane_potential > self.spike_threshold).float()
+            
+            # Reset membrane potential for spiking neurons
+            self.membrane_potential = self.membrane_potential * (1 - output_spikes_t)
+            
+            # Handle refractory period
+            if self.config.refractory_period > 0:
+                self.refractory_count = torch.maximum(
+                    self.refractory_count - 1,
+                    torch.zeros_like(self.refractory_count)
                 )
+                
+                # Suppress spikes during refractory period
+                output_spikes_t = output_spikes_t * (self.refractory_count == 0)
+                
+                # Set refractory count for newly spiking neurons
+                new_spikes = output_spikes_t > 0
+                self.refractory_count[new_spikes] = self.config.refractory_period
             
-            # Accumulate output spikes
-            if accumulated_spikes is None:
-                accumulated_spikes = current_spikes
-            else:
-                accumulated_spikes = accumulated_spikes + current_spikes
+            output_spikes.append(output_spikes_t)
         
-        # Average over timesteps
-        if accumulated_spikes is not None:
-            accumulated_spikes = accumulated_spikes / min(event_tensor.shape[1], self.timesteps)
-        else:
-            accumulated_spikes = torch.zeros(batch_size, 
-                                             self.features[-1].conv.out_channels,
-                                             self.input_shape[1] // 8,
-                                             self.input_shape[2] // 8,
-                                             device=event_tensor.device)
+        # Stack outputs
+        output = torch.stack(output_spikes, dim=1)
         
-        # Flatten and classify
-        features = accumulated_spikes.view(batch_size, -1)
-        logits = self.classifier(features)
-        
-        return logits
+        return output
 
 
-class SparseSpikingConv2d(nn.Module):
+class SpikingResidualBlock(nn.Module):
     """
-    Memory-efficient sparse spiking convolution.
+    Residual block for deep spiking CNNs.
     
-    Only processes non-zero spike locations, significantly reducing
-    computation for sparse event-camera data.
+    Implements skip connections adapted for spiking neural networks,
+    helping to train deeper SNN architectures.
     """
     
-    def __init__(self, in_channels: int, out_channels: int,
-                 kernel_size: int = 3, stride: int = 1, padding: int = 1,
-                 threshold: float = 1.0):
+    def __init__(self, channels: int, kernel_size: int = 3, 
+                 threshold: float = 1.0, decay: float = 0.9):
         super().__init__()
         
-        self.conv = nn.Conv2d(in_channels, out_channels, kernel_size,
-                              stride, padding, bias=False)
+        padding = kernel_size // 2
+        
+        self.conv1 = SpikingConv2d(SpikingConvConfig(
+            in_channels=channels,
+            out_channels=channels,
+            kernel_size=kernel_size,
+            padding=padding,
+            threshold=threshold,
+            decay=decay,
+            use_bn=True
+        ))
+        
+        self.conv2 = SpikingConv2d(SpikingConvConfig(
+            in_channels=channels,
+            out_channels=channels,
+            kernel_size=kernel_size,
+            padding=padding,
+            threshold=threshold,
+            decay=decay,
+            use_bn=True
+        ))
+        
         self.threshold = threshold
-        self.membrane_register: Optional[torch.Tensor] = None
+        
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Forward pass with residual connection."""
+        identity = x
+        
+        out = self.conv1(x)
+        out = self.conv2(out)
+        
+        # Add residual (identity spikes are added to membrane potential)
+        # This is a simplified residual implementation for SNNs
+        if out.shape == identity.shape:
+            out = out + identity * 0.5  # Scale to prevent excessive firing
+        
+        return out
+
+
+class SpikingPooling(nn.Module):
+    """
+    Average pooling layer for spiking neural networks.
     
-    def forward_sparse(self, spike_indices: torch.Tensor,
-                       spike_values: torch.Tensor,
-                       spatial_shape: Tuple[int, int]) -> Tuple[torch.Tensor, torch.Tensor]:
+    Computes average spike rate over pooling regions instead of max pooling,
+    which is more biologically plausible for rate-coded SNNs.
+    """
+    
+    def __init__(self, kernel_size: int = 2, stride: int = 2):
+        super().__init__()
+        self.pool = nn.AvgPool2d(kernel_size, stride)
+        
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
-        Process sparse spikes efficiently.
+        Apply average pooling to spike tensor.
         
         Args:
-            spike_indices: Tensor of shape (N, 4) with (batch, channel, y, x) indices
-            spike_values: Tensor of shape (N,) with spike values (all 1.0 typically)
-            spatial_shape: (height, width) of output
-        
+            x: Spike tensor (batch, time, channels, height, width) or
+               (batch, channels, height, width)
+               
         Returns:
-            output_spikes: Sparse output spikes
-            membrane: Updated membrane at spike locations
+            Pooled spike tensor
         """
-        # Initialize membrane register if needed
-        if self.membrane_register is None or self.membrane_register.shape[0] != spike_indices.shape[0]:
-            self.membrane_register = torch.zeros_like(spike_values)
+        if x.dim() == 5:
+            # Temporal input: apply pooling to each time step
+            batch, time, channels, height, width = x.shape
+            x = x.view(-1, channels, height, width)
+            x = self.pool(x)
+            _, _, h_out, w_out = x.shape
+            x = x.view(batch, time, -1, h_out, w_out)
+        else:
+            x = self.pool(x)
         
-        # Dense convolution on sparse input (could be further optimized)
-        # Create sparse tensor representation
-        batch_size = spike_indices[:, 0].max().item() + 1
-        dense_input = torch.sparse_coo_tensor(
-            spike_indices.t(),
-            spike_values,
-            (batch_size, self.conv.in_channels, spatial_shape[0], spatial_shape[1])
-        ).to_dense()
-        
-        # Convolve
-        conv_output = self.conv(dense_input)
-        
-        # Update membrane
-        self.membrane_register = self.membrane_register + conv_output.view(-1)[spike_indices[:, 0] * conv_output.shape[1] + spike_indices[:, 1]]
-        
-        # Generate spikes
-        output_spikes = (self.membrane_register > self.threshold).float()
-        
-        # Reset membrane where spikes occurred
-        self.membrane_register = self.membrane_register * (1 - output_spikes)
-        
-        return output_spikes, self.membrane_register
-    
-    def reset_membrane(self):
-        """Reset membrane state."""
-        if self.membrane_register is not None:
-            self.membrane_register.zero_()
+        return x
 
 
-# Utility functions for event-to-spike conversion
-def aer_events_to_spike_tensor(events: List[Tuple[int, int, int, int]],
-                                spatial_shape: Tuple[int, int],
-                                temporal_bins: int = 10) -> torch.Tensor:
+class SpikingFlatten(nn.Module):
     """
-    Convert AER events to spike tensor for SNN processing.
+    Flatten layer for transitioning from conv to fully-connected layers in SNNs.
+    
+    Preserves temporal dimension while flattening spatial dimensions.
+    """
+    
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """
+        Flatten spatial dimensions.
+        
+        Args:
+            x: Input tensor (batch, time, channels, height, width) or
+               (batch, channels, height, width)
+               
+        Returns:
+            Flattened tensor (batch, time, features) or (batch, features)
+        """
+        if x.dim() == 5:
+            batch, time, channels, height, width = x.shape
+            return x.view(batch, time, channels * height * width)
+        elif x.dim() == 4:
+            batch, channels, height, width = x.shape
+            return x.view(batch, channels * height * width)
+        else:
+            return x
+
+
+class SpikingClassifier(nn.Module):
+    """
+    Complete spiking CNN classifier for neuromorphic vision tasks.
+    
+    Architecture:
+        Conv -> Pool -> Conv -> Pool -> FC -> Output
+    """
+    
+    def __init__(self, 
+                 input_channels: int = 3,
+                 num_classes: int = 10,
+                 time_window: int = 10):
+        super().__init__()
+        
+        self.time_window = time_window
+        
+        # Feature extraction
+        self.features = nn.Sequential(
+            SpikingConv2d(SpikingConvConfig(
+                in_channels=input_channels,
+                out_channels=32,
+                kernel_size=3,
+                padding=1
+            )),
+            SpikingPooling(2, 2),
+            
+            SpikingConv2d(SpikingConvConfig(
+                in_channels=32,
+                out_channels=64,
+                kernel_size=3,
+                padding=1
+            )),
+            SpikingPooling(2, 2),
+        )
+        
+        # Classifier
+        self.classifier = nn.Sequential(
+            SpikingFlatten(),
+            nn.Linear(64 * 8 * 8, num_classes),  # Assumes 32x32 input
+        )
+        
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """
+        Classify input spike sequence.
+        
+        Args:
+            x: Input spike tensor (batch, time, channels, height, width)
+            
+        Returns:
+            Classification output (summed spike counts per class)
+        """
+        # Extract features
+        x = self.features(x)
+        
+        # Classify
+        x = self.classifier(x)
+        
+        # Sum spikes over time window for classification decision
+        # Each class neuron accumulates spikes; highest count wins
+        x = x.sum(dim=1)  # (batch, num_classes)
+        
+        return x
+
+
+def compute_spike_rate(spike_tensor: torch.Tensor, 
+                       time_window: Optional[int] = None) -> torch.Tensor:
+    """
+    Compute spike rate from spike tensor.
     
     Args:
-        events: List of (x, y, timestamp, polarity) tuples
-        spatial_shape: (height, width) of sensor
-        temporal_bins: Number of time bins
-    
-    Returns:
-        spike_tensor: Shape (temporal_bins, 2, height, width)
-                     where 2 channels are ON/OFF polarities
-    """
-    height, width = spatial_shape
-    
-    # Find time range
-    if not events:
-        return torch.zeros(temporal_bins, 2, height, width)
-    
-    timestamps = [e[2] for e in events]
-    min_ts, max_ts = min(timestamps), max(timestamps)
-    time_range = max(max_ts - min_ts, 1)
-    
-    # Create spike tensor
-    spike_tensor = torch.zeros(temporal_bins, 2, height, width)
-    
-    for x, y, ts, polarity in events:
-        bin_idx = int((ts - min_ts) / time_range * (temporal_bins - 1))
-        bin_idx = min(bin_idx, temporal_bins - 1)
-        channel = 1 if polarity > 0 else 0
+        spike_tensor: Binary spike tensor with time dimension
+        time_window: Optional time window to average over
         
-        if 0 <= x < width and 0 <= y < height:
-            spike_tensor[bin_idx, channel, y, x] = 1.0
+    Returns:
+        Spike rate tensor
+    """
+    if time_window is not None:
+        spike_tensor = spike_tensor[:, :time_window, ...]
     
-    return spike_tensor
+    return spike_tensor.mean(dim=1)
 
 
 if __name__ == "__main__":
-    # Test spiking convolution
-    print("Testing SpikingConv2d...")
+    # Example usage
+    print("Testing Spiking Conv2D...")
     
-    batch_size = 4
-    in_channels = 2  # ON/OFF event channels
-    height, width = 64, 64
-    
-    # Create random spike input
-    spikes = torch.rand(batch_size, in_channels, height, width) > 0.9
-    spikes = spikes.float()
-    
-    # Test layer
-    conv = SpikingConv2d(in_channels, 16, kernel_size=3)
-    output_spikes, membrane = conv(spikes)
-    
-    print(f"Input spikes: {spikes.sum().item()}")
-    print(f"Output shape: {output_spikes.shape}")
-    print(f"Output spikes: {output_spikes.sum().item()}")
-    
-    # Test full SNN
-    print("\nTesting EventCameraSNN...")
-    
-    snn = EventCameraSNN(
-        input_shape=(2, 64, 64),
-        num_classes=10,
-        timesteps=5
+    config = SpikingConvConfig(
+        in_channels=3,
+        out_channels=16,
+        kernel_size=3,
+        padding=1
     )
     
-    # Simulate event data
-    event_data = torch.randn(batch_size, 5, 2, 64, 64) > 0.8
-    event_data = event_data.float()
+    conv_layer = SpikingConv2d(config)
     
-    logits = snn(event_data)
-    print(f"Logits shape: {logits.shape}")
-    print(f"Predicted classes: {logits.argmax(dim=1)}")
+    # Create test input (simulated spike events)
+    batch_size = 2
+    time_steps = 10
+    height, width = 32, 32
     
-    print("\nAll tests passed!")
+    # Random spike input (Bernoulli distributed)
+    input_spikes = (torch.rand(batch_size, time_steps, 3, height, width) > 0.8).float()
+    
+    # Forward pass
+    output = conv_layer(input_spikes, time_window=time_steps)
+    
+    print(f"Input shape: {input_spikes.shape}")
+    print(f"Output shape: {output.shape}")
+    print(f"Total input spikes: {input_spikes.sum().item()}")
+    print(f"Total output spikes: {output.sum().item()}")
+    print(f"Spike rate: {output.mean().item():.4f}")
+    
+    # Test classifier
+    classifier = SpikingClassifier(input_channels=3, num_classes=10, time_window=time_steps)
+    output_logits = classifier(input_spikes)
+    print(f"Classifier output shape: {output_logits.shape}")

@@ -1,196 +1,260 @@
 """
-Surrogate Gradient Functions for SNN Backpropagation
+Surrogate Gradient Functions for Spiking Neural Network Backpropagation.
 
-The Heaviside step function used for spike generation is non-differentiable.
-This module implements surrogate gradient functions that approximate the 
-derivative to enable backpropagation through spiking neural networks.
+The Heaviside step function used in SNNs is non-differentiable (gradient = 0 everywhere
+except at threshold where it's undefined). Surrogate gradients provide a smooth approximation
+that allows gradients to flow during backpropagation through time (BPTT).
 
-Key insight: During forward pass, use hard threshold (Heaviside).
-During backward pass, use smooth approximation for gradient flow.
+This module implements multiple surrogate gradient functions with adaptive alpha scheduling
+to prevent vanishing gradients during training.
 """
 
 import torch
 import torch.nn as nn
-import numpy as np
-from typing import Tuple, Optional
+import torch.nn.functional as F
+from typing import Tuple, Optional, Callable
+from dataclasses import dataclass
 import math
+
+
+@dataclass
+class SurrogateGradientConfig:
+    """Configuration for surrogate gradient functions."""
+    # Type of surrogate gradient function
+    function_type: str = "fast_sigmoid"  # fast_sigmoid, multi_gaussian, triangular, piecewise_linear
+    
+    # Alpha parameter controls the width of the gradient window
+    # Larger alpha = wider window = more gradient flow but less biological accuracy
+    alpha: float = 1.0
+    
+    # Minimum alpha to prevent complete gradient vanishing
+    min_alpha: float = 0.1
+    
+    # Maximum alpha to prevent excessive smoothing
+    max_alpha: float = 10.0
+    
+    # Whether to use adaptive alpha scheduling
+    adaptive_alpha: bool = True
+    
+    # Warmup epochs for alpha scheduling
+    warmup_epochs: int = 10
+    
+    # Decay rate for alpha after warmup
+    decay_rate: float = 0.95
 
 
 class SurrogateGradientFunction(torch.autograd.Function):
     """
-    Custom autograd function with surrogate gradient for spiking neurons.
+    Custom autograd function implementing surrogate gradient descent for SNNs.
     
-    Forward pass: Heaviside step function (spike if v > threshold)
-    Backward pass: Smooth surrogate derivative for gradient flow
+    The forward pass uses the Heaviside step function:
+        spike = 1 if membrane_potential > threshold else 0
+    
+    The backward pass uses a smooth surrogate derivative that allows gradients to flow.
     """
     
     @staticmethod
-    def forward(ctx, membrane_potential: torch.Tensor, 
-                threshold: float = 1.0,
-                surrogate_type: str = 'fast_sigmoid',
-                alpha: float = 1.0) -> torch.Tensor:
+    def forward(ctx, x: torch.Tensor, threshold: float = 1.0, alpha: float = 1.0, 
+                function_type: str = "fast_sigmoid") -> torch.Tensor:
         """
-        Forward pass: Generate spikes using Heaviside step function.
+        Forward pass: Heaviside step function.
         
         Args:
-            membrane_potential: Membrane potential tensor
-            threshold: Spike threshold (default 1.0)
-            surrogate_type: Type of surrogate gradient ('fast_sigmoid', 'multi_gaussian', 
-                           'piecewise_linear', 'arctan')
-            alpha: Width parameter for surrogate gradient (larger = wider gradient window)
-        
+            ctx: Context object to save tensors for backward pass
+            x: Membrane potential tensor
+            threshold: Spike threshold
+            alpha: Width parameter for surrogate gradient
+            function_type: Type of surrogate gradient function
+            
         Returns:
-            Spike tensor (0 or 1)
+            Binary spike tensor (0 or 1)
         """
-        ctx.save_for_backward(membrane_potential)
+        # Save context for backward pass
+        ctx.save_for_backward(x)
         ctx.threshold = threshold
-        ctx.surrogate_type = surrogate_type
         ctx.alpha = alpha
+        ctx.function_type = function_type
         
-        # Heaviside step function: spike if V > threshold
-        spikes = (membrane_potential > threshold).float()
+        # Heaviside step function: spike if x > threshold
+        spikes = (x > threshold).to(dtype=x.dtype)
         return spikes
     
     @staticmethod
     def backward(ctx, grad_output: torch.Tensor) -> Tuple[torch.Tensor, None, None, None]:
         """
-        Backward pass: Compute surrogate gradient.
+        Backward pass: Surrogate gradient computation.
         
-        The gradient is approximated using a smooth function centered at threshold.
+        Uses the straight-through estimator (STE) variant where gradients flow
+        through the surrogate derivative instead of the actual step function derivative.
+        
+        Args:
+            ctx: Context object with saved tensors
+            grad_output: Gradient from upstream layers
+            
+        Returns:
+            Gradient w.r.t. input membrane potential
         """
-        membrane_potential, = ctx.saved_tensors
+        x, = ctx.saved_tensors
         threshold = ctx.threshold
-        surrogate_type = ctx.surrogate_type
         alpha = ctx.alpha
+        function_type = ctx.function_type
         
-        # Compute surrogate derivative based on type
-        if surrogate_type == 'fast_sigmoid':
-            # Fast sigmoid: σ(x) = 1 / (1 + exp(-αx))
-            # Derivative: α * σ(x) * (1 - σ(x))
-            x = (membrane_potential - threshold) * alpha
-            sigmoid_x = torch.sigmoid(x)
-            grad_input = alpha * sigmoid_x * (1 - sigmoid_x)
-            
-        elif surrogate_type == 'multi_gaussian':
-            # Multi-Gaussian: Sum of Gaussians for better gradient coverage
-            # Prevents vanishing gradients by having multiple peaks
-            x = membrane_potential - threshold
-            sigma = 1.0 / alpha
-            
-            # Three Gaussians centered at threshold and ±offset
-            offset = 0.5
-            g1 = torch.exp(-0.5 * (x / sigma) ** 2)
-            g2 = 0.5 * torch.exp(-0.5 * ((x - offset) / sigma) ** 2)
-            g3 = 0.5 * torch.exp(-0.5 * ((x + offset) / sigma) ** 2)
-            grad_input = (g1 + g2 + g3) * alpha
-            
-        elif surrogate_type == 'piecewise_linear':
-            # Piecewise linear (triangle function)
-            # Non-zero gradient in [threshold - 1/α, threshold + 1/α]
-            x = membrane_potential - threshold
-            width = 1.0 / alpha
-            grad_input = torch.clamp(1.0 - torch.abs(x) / width, 0.0, 1.0) * alpha
-            
-        elif surrogate_type == 'arctan':
-            # Arctangent surrogate: derivative of (2/π) * arctan(παx/2)
-            x = (membrane_potential - threshold) * alpha
-            grad_input = alpha / (1.0 + (math.pi * alpha * x / 2) ** 2)
-            
-        elif surrogate_type == 'rectangular':
-            # Simple rectangular window (supervised learning style)
-            x = membrane_potential - threshold
-            width = 1.0 / alpha
-            grad_input = (torch.abs(x) < width).float() * alpha
-            
+        # Compute surrogate derivative based on function type
+        if function_type == "fast_sigmoid":
+            grad_approx = _fast_sigmoid_derivative(x, threshold, alpha)
+        elif function_type == "multi_gaussian":
+            grad_approx = _multi_gaussian_derivative(x, threshold, alpha)
+        elif function_type == "triangular":
+            grad_approx = _triangular_derivative(x, threshold, alpha)
+        elif function_type == "piecewise_linear":
+            grad_approx = _piecewise_linear_derivative(x, threshold, alpha)
         else:
-            raise ValueError(f"Unknown surrogate type: {surrogate_type}")
+            # Default to fast sigmoid
+            grad_approx = _fast_sigmoid_derivative(x, threshold, alpha)
         
-        # Chain rule: multiply by upstream gradient
-        return grad_input * grad_output, None, None, None
+        # Chain rule: gradient flows through surrogate derivative
+        grad_input = grad_output * grad_approx
+        
+        return grad_input, None, None, None
 
 
-def spike_function(membrane_potential: torch.Tensor, 
-                   threshold: float = 1.0,
-                   surrogate_type: str = 'fast_sigmoid',
-                   alpha: float = 1.0,
-                   training: bool = True) -> torch.Tensor:
+def _fast_sigmoid_derivative(x: torch.Tensor, threshold: float = 1.0, 
+                              alpha: float = 1.0) -> torch.Tensor:
     """
-    Apply spiking function with surrogate gradient support.
+    Fast sigmoid surrogate gradient.
     
-    Args:
-        membrane_potential: Input membrane potential
-        threshold: Spike threshold
-        surrogate_type: Type of surrogate gradient
-        alpha: Surrogate gradient width parameter
-        training: If True, use surrogate gradient; if False, hard threshold only
+    Derivative: alpha / (2 * (|x - threshold| * alpha + 1)^2)
     
-    Returns:
-        Spike tensor
+    This is computationally efficient and provides reasonable gradient flow.
+    The gradient peaks at the threshold and decays quadratically.
     """
-    if training:
-        return SurrogateGradientFunction.apply(
-            membrane_potential, threshold, surrogate_type, alpha
-        )
-    else:
-        # Inference mode: just use hard threshold
-        return (membrane_potential > threshold).float()
+    diff = x - threshold
+    return alpha / (2.0 * (torch.abs(diff) * alpha + 1.0) ** 2)
+
+
+def _multi_gaussian_derivative(x: torch.Tensor, threshold: float = 1.0,
+                                alpha: float = 1.0) -> torch.Tensor:
+    """
+    Multi-Gaussian surrogate gradient with multiple peaks.
+    
+    Uses a sum of Gaussians centered around the threshold to provide
+    gradient flow over a wider range while maintaining peak sensitivity.
+    
+    Derivative: sum_i(w_i * exp(-(x - threshold - mu_i)^2 / (2 * sigma_i^2)))
+    
+    This helps prevent vanishing gradients by providing multiple gradient peaks.
+    """
+    # Three Gaussian components
+    sigma = 1.0 / alpha
+    
+    # Center Gaussian at threshold
+    g1 = torch.exp(-((x - threshold) ** 2) / (2 * sigma ** 2))
+    
+    # Side Gaussians for extended gradient flow
+    g2 = 0.5 * torch.exp(-((x - threshold - 0.5) ** 2) / (2 * sigma ** 2))
+    g3 = 0.5 * torch.exp(-((x - threshold + 0.5) ** 2) / (2 * sigma ** 2))
+    
+    return (g1 + g2 + g3) / sigma
+
+
+def _triangular_derivative(x: torch.Tensor, threshold: float = 1.0,
+                           alpha: float = 1.0) -> torch.Tensor:
+    """
+    Triangular surrogate gradient.
+    
+    Derivative: max(0, 1 - alpha * |x - threshold|)
+    
+    Provides uniform gradient within a window around the threshold,
+    then abruptly cuts off. Simple but effective.
+    """
+    diff = torch.abs(x - threshold)
+    window_width = 1.0 / alpha
+    return torch.clamp(1.0 - diff / window_width, min=0.0)
+
+
+def _piecewise_linear_derivative(x: torch.Tensor, threshold: float = 1.0,
+                                  alpha: float = 1.0) -> torch.Tensor:
+    """
+    Piecewise linear surrogate gradient with different slopes.
+    
+    Provides steeper gradient near threshold and gentler slope further away.
+    """
+    diff = x - threshold
+    abs_diff = torch.abs(diff)
+    
+    # Inner region: steep gradient
+    inner_mask = abs_diff <= 0.5 / alpha
+    inner_grad = alpha * (1.0 - 2.0 * abs_diff)
+    
+    # Outer region: gentle gradient tail
+    outer_mask = (abs_diff > 0.5 / alpha) & (abs_diff <= 1.5 / alpha)
+    outer_grad = alpha * 0.5 * (1.5 / alpha - abs_diff)
+    
+    # Combine regions
+    grad = torch.zeros_like(x)
+    grad[inner_mask] = inner_grad[inner_mask]
+    grad[outer_mask] = outer_grad[outer_mask]
+    
+    return grad
 
 
 class AdaptiveAlphaScheduler:
     """
-    Adaptive alpha scheduler to prevent vanishing gradients during BPTT.
+    Adaptive alpha scheduler to prevent vanishing gradients.
     
-    Early in training: Use wider alpha for better gradient flow
-    Later in training: Narrow alpha for more precise spike timing
+    During early training, uses larger alpha for wider gradient windows.
+    Gradually reduces alpha to improve biological accuracy while maintaining
+    sufficient gradient flow.
     """
     
-    def __init__(self, initial_alpha: float = 0.5, 
-                 min_alpha: float = 0.1,
-                 max_alpha: float = 10.0,
-                 warmup_epochs: int = 10,
-                 decay_rate: float = 0.95):
-        """
-        Args:
-            initial_alpha: Starting alpha value
-            min_alpha: Minimum allowed alpha
-            max_alpha: Maximum allowed alpha  
-            warmup_epochs: Epochs to gradually increase from initial
-            decay_rate: Per-epoch decay after warmup
-        """
-        self.initial_alpha = initial_alpha
-        self.min_alpha = min_alpha
-        self.max_alpha = max_alpha
-        self.warmup_epochs = warmup_epochs
-        self.decay_rate = decay_rate
-        self.current_epoch = 0
-        self.current_alpha = initial_alpha
+    def __init__(self, config: SurrogateGradientConfig):
+        self.config = config
+        self.current_alpha = config.alpha
+        self.epoch = 0
+        self.gradient_magnitude_history = []
+        self.warmup_complete = False
         
-    def step(self, epoch: Optional[int] = None) -> float:
+    def step(self, gradient_magnitude: Optional[float] = None) -> float:
         """
-        Update alpha based on training progress.
+        Update alpha based on current epoch and gradient statistics.
         
         Args:
-            epoch: Current epoch (if None, increment internal counter)
-        
+            gradient_magnitude: Optional observed gradient magnitude for adaptive adjustment
+            
         Returns:
             Updated alpha value
         """
-        if epoch is not None:
-            self.current_epoch = epoch
-        else:
-            self.current_epoch += 1
+        self.epoch += 1
         
-        if self.current_epoch < self.warmup_epochs:
-            # Linear warmup
-            progress = self.current_epoch / self.warmup_epochs
-            self.current_alpha = self.initial_alpha + (self.max_alpha - self.initial_alpha) * progress
-        else:
-            # Exponential decay after warmup
-            decay_epochs = self.current_epoch - self.warmup_epochs
-            self.current_alpha = max(
-                self.min_alpha,
-                self.max_alpha * (self.decay_rate ** decay_epochs)
-            )
+        # Track gradient magnitude if provided
+        if gradient_magnitude is not None:
+            self.gradient_magnitude_history.append(gradient_magnitude)
+            # Keep only recent history
+            if len(self.gradient_magnitude_history) > 100:
+                self.gradient_magnitude_history.pop(0)
+        
+        # Warmup phase: gradually increase alpha
+        if self.epoch <= self.config.warmup_epochs:
+            warmup_progress = self.epoch / self.config.warmup_epochs
+            self.current_alpha = self.config.min_alpha + warmup_progress * (self.config.alpha - self.config.min_alpha)
+        
+        # Post-warmup: adaptive adjustment based on gradient magnitude
+        elif self.config.adaptive_alpha and gradient_magnitude is not None:
+            avg_gradient = sum(self.gradient_magnitude_history) / len(self.gradient_magnitude_history)
+            
+            # If gradients are too small, increase alpha
+            if avg_gradient < 0.01:
+                self.current_alpha = min(self.current_alpha * 1.1, self.config.max_alpha)
+            # If gradients are healthy, slowly decay alpha
+            elif avg_gradient > 0.1:
+                self.current_alpha = max(self.current_alpha * self.config.decay_rate, self.config.min_alpha)
+        
+        # Clamp to valid range
+        self.current_alpha = torch.clamp(
+            torch.tensor(self.current_alpha),
+            self.config.min_alpha,
+            self.config.max_alpha
+        ).item()
         
         return self.current_alpha
     
@@ -200,121 +264,114 @@ class AdaptiveAlphaScheduler:
     
     def reset(self):
         """Reset scheduler state."""
-        self.current_epoch = 0
-        self.current_alpha = self.initial_alpha
+        self.epoch = 0
+        self.current_alpha = self.config.alpha
+        self.gradient_magnitude_history = []
+        self.warmup_complete = False
 
 
 class LearnableSurrogateGradient(nn.Module):
     """
-    Learnable surrogate gradient parameters.
+    Surrogate gradient with learnable alpha parameter per neuron.
     
-    Instead of fixed alpha, learn optimal surrogate gradient shape
-    during training for each neuron layer.
+    Allows the network to learn optimal gradient widths for different neurons,
+    adapting to their specific activation patterns.
     """
     
-    def __init__(self, num_neurons: int, 
-                 initial_alpha: float = 1.0,
-                 alpha_min: float = 0.01,
-                 alpha_max: float = 100.0):
+    def __init__(self, num_neurons: int, initial_alpha: float = 1.0,
+                 min_alpha: float = 0.1, max_alpha: float = 10.0):
         super().__init__()
         
-        # Learnable alpha per neuron (in log space for stability)
-        self.log_alpha = nn.Parameter(
-            torch.full((num_neurons,), math.log(initial_alpha))
-        )
-        self.alpha_min = math.log(alpha_min)
-        self.alpha_max = math.log(alpha_max)
+        # Learnable alpha parameter (in log space for stability)
+        self.log_alpha = nn.Parameter(torch.log(torch.tensor(initial_alpha)) * torch.ones(num_neurons))
         
-    def forward(self, membrane_potential: torch.Tensor) -> torch.Tensor:
-        """
-        Compute surrogate gradient with learned parameters.
+        # Constraints
+        self.min_log_alpha = math.log(min_alpha)
+        self.max_log_alpha = math.log(max_alpha)
         
-        Returns:
-            Gradient mask for backpropagation
-        """
-        # Clamp alpha to valid range
-        log_alpha = torch.clamp(self.log_alpha, self.alpha_min, self.alpha_max)
-        alpha = torch.exp(log_alpha)
-        
-        # Broadcast alpha to match membrane potential shape
-        while alpha.dim() < membrane_potential.dim():
-            alpha = alpha.unsqueeze(-1)
-        
-        # Fast sigmoid surrogate with learned alpha
-        x = membrane_potential * alpha
-        sigmoid_x = torch.sigmoid(x)
-        grad_mask = alpha * sigmoid_x * (1 - sigmoid_x)
-        
-        return grad_mask
+        # Regularization for alpha smoothness
+        self.alpha_smoothness_weight = 0.01
     
-    def get_alpha(self) -> torch.Tensor:
-        """Get current alpha values."""
-        return torch.exp(torch.clamp(self.log_alpha, self.alpha_min, self.alpha_max))
+    def forward(self, x: torch.Tensor, threshold: float = 1.0, 
+                function_type: str = "fast_sigmoid") -> torch.Tensor:
+        # Clamp alpha to valid range
+        clamped_log_alpha = torch.clamp(self.log_alpha, self.min_log_alpha, self.max_log_alpha)
+        alpha = torch.exp(clamped_log_alpha)
+        
+        # Broadcast alpha if needed
+        if x.dim() > 1 and alpha.dim() < x.dim():
+            alpha = alpha.view(-1, *[1] * (x.dim() - 1))
+        
+        return SurrogateGradientFunction.apply(x, threshold, alpha.item(), function_type)
+    
+    def get_alpha_smoothness_loss(self) -> torch.Tensor:
+        """
+        Regularization loss to encourage smooth alpha values across neurons.
+        """
+        if self.log_alpha.numel() < 2:
+            return torch.tensor(0.0)
+        
+        alpha_diff = torch.diff(self.log_alpha)
+        return self.alpha_smoothness_weight * torch.mean(alpha_diff ** 2)
 
 
-def compute_surrogate_gradient(membrane_potential: torch.Tensor,
-                               threshold: float = 1.0,
-                               alpha: float = 1.0,
-                               method: str = 'fast_sigmoid') -> torch.Tensor:
+def create_surrogate_gradient(config: SurrogateGradientConfig) -> Callable:
     """
-    Standalone function to compute surrogate gradient for debugging/analysis.
+    Factory function to create configured surrogate gradient function.
     
     Args:
-        membrane_potential: Membrane potential tensor
-        threshold: Spike threshold
-        alpha: Gradient width parameter
-        method: Gradient computation method
-    
+        config: Configuration for the surrogate gradient
+        
     Returns:
-        Surrogate gradient tensor
+        Configured surrogate gradient function
     """
-    x = membrane_potential - threshold
-    
-    if method == 'fast_sigmoid':
-        sigmoid_x = torch.sigmoid(alpha * x)
-        return alpha * sigmoid_x * (1 - sigmoid_x)
-    
-    elif method == 'multi_gaussian':
-        sigma = 1.0 / alpha
-        g1 = torch.exp(-0.5 * (x / sigma) ** 2)
-        g2 = 0.5 * torch.exp(-0.5 * ((x - 0.5) / sigma) ** 2)
-        g3 = 0.5 * torch.exp(-0.5 * ((x + 0.5) / sigma) ** 2)
-        return alpha * (g1 + g2 + g3)
-    
-    elif method == 'piecewise_linear':
-        width = 1.0 / alpha
-        return torch.clamp(1.0 - torch.abs(x) / width, 0.0, 1.0) * alpha
-    
-    elif method == 'arctan':
-        return alpha / (1.0 + (math.pi * alpha * x / 2) ** 2)
-    
-    else:
-        raise ValueError(f"Unknown method: {method}")
+    def surrogate_fn(x: torch.Tensor, threshold: float = 1.0) -> torch.Tensor:
+        return SurrogateGradientFunction.apply(
+            x, threshold, config.alpha, config.function_type
+        )
+    return surrogate_fn
 
 
-# Example usage and testing
+# Convenience functions for common use cases
+def fast_sigmoid_spike(x: torch.Tensor, threshold: float = 1.0, alpha: float = 1.0) -> torch.Tensor:
+    """Fast sigmoid surrogate gradient spiking function."""
+    return SurrogateGradientFunction.apply(x, threshold, alpha, "fast_sigmoid")
+
+
+def multi_gaussian_spike(x: torch.Tensor, threshold: float = 1.0, alpha: float = 1.0) -> torch.Tensor:
+    """Multi-Gaussian surrogate gradient spiking function."""
+    return SurrogateGradientFunction.apply(x, threshold, alpha, "multi_gaussian")
+
+
+def triangular_spike(x: torch.Tensor, threshold: float = 1.0, alpha: float = 1.0) -> torch.Tensor:
+    """Triangular surrogate gradient spiking function."""
+    return SurrogateGradientFunction.apply(x, threshold, alpha, "triangular")
+
+
 if __name__ == "__main__":
-    # Test surrogate gradient computation
-    test_voltage = torch.linspace(-2, 2, 1000)
+    # Example usage and testing
+    print("Testing Surrogate Gradient Functions...")
     
-    methods = ['fast_sigmoid', 'multi_gaussian', 'piecewise_linear', 'arctan']
+    # Create test tensor
+    x = torch.linspace(-2, 4, 1000, requires_grad=True)
+    threshold = 1.0
+    alpha = 2.0
     
-    print("Surrogate Gradient Comparison:")
-    print("-" * 60)
+    # Test fast sigmoid
+    spikes = fast_sigmoid_spike(x, threshold, alpha)
+    loss = spikes.sum()
+    loss.backward()
     
-    for method in methods:
-        grad = compute_surrogate_gradient(test_voltage, alpha=2.0, method=method)
-        print(f"{method:20s}: max={grad.max():.4f}, mean={grad.mean():.4f}, "
-              f"nonzero={(grad > 0.01).sum().item()}")
+    print(f"Input range: [{x.min():.2f}, {x.max():.2f}]")
+    print(f"Spikes generated: {spikes.sum().item()}")
+    print(f"Gradient magnitude: {x.grad.abs().mean().item():.6f}")
     
     # Test adaptive scheduler
-    print("\nAdaptive Alpha Scheduler:")
-    scheduler = AdaptiveAlphaScheduler(
-        initial_alpha=0.5,
-        warmup_epochs=5,
-        decay_rate=0.9
-    )
+    config = SurrogateGradientConfig(adaptive_alpha=True, warmup_epochs=5)
+    scheduler = AdaptiveAlphaScheduler(config)
     
+    print("\nAdaptive Alpha Schedule:")
     for epoch in range(15):
-        alpha = scheduler.step(epoch)
-        print(f"Epoch {epoch:2d}: alpha = {alpha:.4f}")
+        grad_mag = 0.05 if epoch < 5 else 0.15  # Simulated gradient magnitudes
+        new_alpha = scheduler.step(grad_mag)
+        print(f"  Epoch {epoch}: alpha = {new_alpha:.4f}")
