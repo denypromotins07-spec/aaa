@@ -1,0 +1,18 @@
+[package]
+name = "nexus_simulation"
+version = "0.1.0"
+edition = "2021"
+authors = ["NEXUS-OMEGA Team"]
+description = "Stage 42 of 50: Simulation Theory Validation, Base-Reality Arbitrage & Glitch Exploitation"
+license = "MIT"
+
+[dependencies]
+# Zero-allocation design - no external runtime dependencies for hot paths
+
+[dev-dependencies]
+# Test utilities only
+
+[features]
+default = []
+# Enable potentially disruptive testing (use with caution)
+# academic_mode = []
