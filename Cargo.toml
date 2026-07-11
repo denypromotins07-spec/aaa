@@ -6,6 +6,7 @@ members = [
     "crates/nexus_hft",
     "crates/nexus_statarb",
     "crates/nexus_nlp",
+    "crates/nexus_kardashev",
 ]
 
 [workspace.package]
