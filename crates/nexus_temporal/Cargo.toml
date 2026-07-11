@@ -1,0 +1,17 @@
+[package]
+name = "nexus_temporal"
+version = "0.1.0"
+edition = "2021"
+description = "NEXUS-OMEGA Stage 40: Temporal Mechanics, CTCs & Retrocausal Alpha"
+license = "MIT"
+
+[dependencies]
+fastrand = "2.0"
+
+[dev-dependencies]
+
+[features]
+default = []
+
+[lib]
+path = "src/lib.rs"
