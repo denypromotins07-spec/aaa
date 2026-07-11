@@ -1,0 +1,11 @@
+[package]
+name = "nexus_climate"
+version = "0.1.0"
+edition = "2021"
+description = "NEXUS-OMEGA Stage 35: Climate Physics, Carbon Arbitrage & Earth-System Thermodynamic Derivatives"
+license = "MIT"
+
+[dependencies]
+
+[features]
+default = []

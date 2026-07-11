@@ -1,40 +1,4 @@
 ```
-# Rust/Cargo specific
 target/
-Cargo.lock
-*.rs.bk
-*.tmp
-
-# Dependencies
-**/node_modules/
-**/.venv/
-**/venv/
-**/__pycache__/
-
-# Build artifacts
-**/build/
-**/dist/
-**/*.so
-**/*.dylib
-**/*.dll
-**/*.exe
-
-# Editors
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# Logs and temp files
-*.log
-*.tmp
-
-# Environment
-.env
-.env.local
-*.env.*
-
-# OS generated files
-.DS_Store
-Thumbs.db
+**/*.rs.bk
 ```
