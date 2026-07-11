@@ -1,0 +1,12 @@
+[package]
+name = "nexus_qualia"
+version = "0.1.0"
+edition = "2021"
+description = "Consciousness Economics, Qualia Valuation & Subjective Experience Derivatives"
+
+[dependencies]
+# No external dependencies for zero-alloc hot paths
+
+[features]
+default = []
+simd = []
