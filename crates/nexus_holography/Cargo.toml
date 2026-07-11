@@ -1,0 +1,15 @@
+[package]
+name = "nexus_holography"
+version = "0.1.0"
+edition = "2021"
+description = "Stage 41: Holographic Market Principle, AdS/CFT Liquidity Correspondence & Boundary Entropy"
+
+[dependencies]
+nexus_core = { path = "../nexus_core" }
+nalgebra = { version = "0.32", features = ["serde-serialize"] }
+num-complex = "0.4"
+serde = { version = "1.0", features = ["derive"] }
+thiserror = "1.0"
+
+[lib]
+path = "src/lib.rs"
