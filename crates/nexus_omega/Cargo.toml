@@ -1,0 +1,16 @@
+[package]
+name = "nexus_omega"
+version = "0.1.0"
+edition = "2021"
+description = "NEXUS-OMEGA Stage 45: The Omega Point, Teleological Attractors & Final State Boundary Conditions"
+license = "MIT"
+
+[dependencies]
+# No external dependencies - pure Rust implementation
+
+[features]
+default = []
+
+[lib]
+name = "nexus_omega"
+path = "src/lib.rs"
