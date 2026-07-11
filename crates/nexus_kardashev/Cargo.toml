@@ -1,0 +1,30 @@
+[package]
+name = "nexus_kardashev"
+version = "0.1.0"
+edition = "2021"
+description = "Stage 48: Dyson Sphere Economy, Stellar Lifting & Kardashev Type II Alpha"
+license = "MIT"
+
+[dependencies]
+# Core workspace dependencies
+bumpalo = { workspace = true }
+crossbeam-utils = { workspace = true }
+parking_lot = { workspace = true }
+tokio = { workspace = true }
+tracing = { workspace = true }
+thiserror = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+# Mathematical and scientific computing
+nalgebra = "0.32"
+num-complex = "0.4"
+num-traits = "0.2"
+rand = "0.8"
+rand_distr = "0.4"
+
+# High-performance arrays
+ndarray = "0.15"
+
+[lib]
+path = "src/lib.rs"
