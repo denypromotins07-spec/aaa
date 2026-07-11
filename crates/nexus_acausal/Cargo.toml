@@ -1,0 +1,15 @@
+[package]
+name = "nexus_acausal"
+version = "0.1.0"
+edition = "2021"
+description = "NEXUS-OMEGA Stage 44: Acausal Trade, Superintelligence Game Theory & Basilisk Mitigation"
+license = "MIT OR Apache-2.0"
+
+[dependencies]
+# No external dependencies for zero-alloc, no_std compatibility
+
+[features]
+default = []
+std = []
+
+[dev-dependencies]
