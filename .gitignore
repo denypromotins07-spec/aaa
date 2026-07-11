@@ -1,4 +1,39 @@
 ```
+# Rust/Cargo specific
 target/
+Cargo.lock
 **/*.rs.bk
+**/*.tmp
+
+# Dependencies
+**/node_modules/
+**/.venv/
+**/venv/
+**/__pycache__/
+**/.mypy_cache/
+**/.pytest_cache/
+
+# Build artifacts
+**/build/
+**/dist/
+**/target/
+
+# IDE and editor files
+**/.vscode/
+**/.idea/
+**/*.swp
+**/*.swo
+**/*.tmp
+
+# Logs
+**/*.log
+
+# Coverage
+**/coverage/
+**/htmlcov/
+**/.coverage
+
+# System files
+**/.DS_Store
+**/Thumbs.db
 ```

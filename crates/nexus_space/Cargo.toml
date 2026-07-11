@@ -1,0 +1,10 @@
+[package]
+name = "nexus_space"
+version = "0.1.0"
+edition = "2021"
+description = "NEXUS-OMEGA Stage 36: Space Economy, Orbital Debris Contagion & Asteroid Mining Derivatives"
+
+[dependencies]
+
+[features]
+default = []
