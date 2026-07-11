@@ -1,0 +1,12 @@
+[package]
+name = "nexus_cosmology"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+nexus_core = { path = "../nexus_core" }
+num-bigint = "0.4"
+num-traits = "0.2"
+
+[lib]
+path = "src/lib.rs"
