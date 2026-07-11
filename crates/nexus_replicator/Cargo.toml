@@ -1,0 +1,35 @@
+[package]
+name = "nexus_replicator"
+version = "0.1.0"
+edition = "2021"
+description = "Stage 47: Von Neumann Probes, Self-Replicating Capital & Interstellar Propagation"
+
+[dependencies]
+# Zero-allocation core
+libm = "0.2"
+num-traits = { version = "0.2", default-features = false }
+num-complex = { version = "0.4", default-features = false }
+
+# Cryptography
+sha2 = { version = "0.10", default-features = false }
+sha3 = { version = "0.10", default-features = false }
+k256 = { version = "0.13", default-features = false, features = ["ecdsa", "std"] }
+tiny-keccak = { version = "2.0", features = ["keccak"] }
+
+# Encoding
+base64 = { version = "0.21", default-features = false }
+hex = { version = "0.4", default-features = false }
+
+# Error handling
+thiserror = "1.0"
+
+# Parallelism (optional, for orbital sims)
+rayon = { version = "1.8", optional = true }
+
+[features]
+default = []
+orbital-sim = ["rayon"]
+interstellar = []
+
+[lib]
+path = "src/lib.rs"
