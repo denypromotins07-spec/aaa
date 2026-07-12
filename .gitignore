@@ -1,41 +1,11 @@
-```rust
-# Build artifacts
-target/
+```
+# Python cache files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
 
-# Dependencies
-Cargo.lock
-
-# Logs and temp files
-*.log
-*.tmp
-*.swp
-
-# Environment
-.env
-.env.local
-*.env.*
-
-# Editors
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# OS generated files
-.DS_Store
-Thumbs.db
-
-# Coverage reports
-coverage/
-htmlcov/
-.coverage
-
-# Rust-specific
-**/*.rs.bk
-Cargo.lock
-target/
-
-# Debug and release builds
-debug/
-release/
+# Compiled Python files in specific directories
+core_engine/*/__pycache__/
+core_engine/*/*/__pycache__/
 ```
