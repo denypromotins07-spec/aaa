@@ -1,46 +1,30 @@
-```
+```rust
 # Compiled and build artifacts
-*.pyc
-__pycache__/
 *.o
 *.obj
-*.exe
+*.a
+*.lib
 *.dll
 *.so
-*.a
-*.out
+*.dylib
+*.exe
+
 # Dependencies
-.venv/
-venv/
-node_modules/
 target/
-.gradle/
-.mypy_cache/
-.pytest_cache/
+
 # Logs and temp files
 *.log
 *.tmp
 *.swp
-# Environment
-.env
-.env.local
-.env.*
+
 # Editors
 .vscode/
 .idea/
 *.swp
 *.swo
-# Coverage
-coverage/
-htmlcov/
-.coverage
-# Distribution archives
-*.tar
-*.tar.gz
-*.tar.bz2
-*.tar.xz
-*.zip
-*.gz
-*.rar
-*.7z
+
+# Rust-specific
+Cargo.lock
+**/target/
+**/Cargo.lock
 ```

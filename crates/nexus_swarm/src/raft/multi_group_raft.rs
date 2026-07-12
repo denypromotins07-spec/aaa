@@ -264,6 +264,8 @@ pub struct RaftGroup {
     commit_index: RwLock<LogIndex>,
     last_applied: RwLock<LogIndex>,
     leader_id: RwLock<Option<NodeId>>,
+    /// Lease expiration timestamp for split-brain prevention
+    lease_expiration_ns: RwLock<u64>,
     snapshot_manager: Arc<ZeroCopySnapshot>,
     executor: Arc<DeterministicExecutor>,
     shutdown_tx: mpsc::Sender<()>,
