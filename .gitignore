@@ -1,1 +1,39 @@
-(empty)
+```rust
+# Build artifacts
+target/
+**/*.rs.bk
+**/*.lock.bk
+
+# Dependencies
+Cargo.lock
+**/vendor/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+
+# Environment
+.env
+.env.local
+*.env.*
+
+# Coverage
+coverage/
+htmlcov/
+.coverage
+
+# Temporary files
+*.tmp
+.DS_Store
+Thumbs.db
+
+# Rust-specific
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+```

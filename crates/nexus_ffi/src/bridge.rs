@@ -166,10 +166,9 @@ impl FFIBridge {
         match self.event_buffer.pop(&mut buffer) {
             Ok(len) => {
                 let py_bytes = PyBytes::new(py, &buffer[..len]);
-                // Safety: We're returning a reference that's tied to the GIL lifetime
-                Ok(Some(unsafe { 
-                    &*(py_bytes as *const PyBytes) 
-                }))
+                // Safety: PyBytes::new creates a Python-owned object tied to the GIL lifetime.
+                // We return the PyObject reference properly through the bound lifetime.
+                Ok(Some(py_bytes))
             }
             Err(nexus_core::concurrency::spsc_ring::RingBufferError::Empty) => Ok(None),
             Err(e) => Err(FFIBridgeError::BoundaryViolation(e.to_string())),
