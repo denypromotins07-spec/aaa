@@ -1,44 +1,41 @@
-```
-# Compiled and build artifacts
-*.o
-*.obj
-*.a
-*.lib
-*.so
-*.dll
-*.exe
-*.out
-*.pyc
-__pycache__/
+```rust
+# Build artifacts
+target/
 
 # Dependencies
-node_modules/
-venv/
-.venv/
-.env
-.env.local
-.env.*
-
-# Build directories (Rust/Cargo specific)
-target/
 Cargo.lock
 
-# IDE and editor files
+# Logs and temp files
+*.log
+*.tmp
+*.swp
+
+# Environment
+.env
+.env.local
+*.env.*
+
+# Editors
 .vscode/
 .idea/
 *.swp
 *.swo
-*.tmp
 
-# Logs
-*.log
+# OS generated files
+.DS_Store
+Thumbs.db
 
-# Coverage
+# Coverage reports
 coverage/
 htmlcov/
 .coverage
 
-# Rust specific build artifacts
-**/target/
+# Rust-specific
+**/*.rs.bk
 Cargo.lock
+target/
+
+# Debug and release builds
+debug/
+release/
 ```
