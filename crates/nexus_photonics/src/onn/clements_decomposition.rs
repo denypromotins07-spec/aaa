@@ -517,7 +517,8 @@ mod tests {
             Complex64::new(theta.cos(), 0.0),
         );
 
-        let config = decomposer.decompose(&u).unwrap();
+        let config = decomposer.decompose(&u)
+            .expect("Clements decomposition should succeed for valid 2x2 unitary matrix");
         assert_eq!(config.dimension, 2);
         assert!(config.reconstruction_error < 1e-10);
     }
@@ -532,7 +533,8 @@ mod tests {
         let qr = random_matrix.qr();
         let q = qr.q();
         
-        let config = decomposer.decompose(&q).unwrap();
+        let config = decomposer.decompose(&q)
+            .expect("Clements decomposition should succeed for valid 4x4 unitary matrix");
         assert_eq!(config.dimension, 4);
         assert!(config.reconstruction_error < 1e-10);
     }

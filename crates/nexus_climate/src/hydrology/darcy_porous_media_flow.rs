@@ -330,14 +330,16 @@ mod tests {
 
     #[test]
     fn test_porous_media_properties() {
-        let props = PorousMediaProperties::new(1e-12, 0.3, 1e-6, 1e-3, 1000.0).unwrap();
+        let props = PorousMediaProperties::new(1e-12, 0.3, 1e-6, 1e-3, 1000.0)
+            .expect("Porous media properties should be created with valid parameters");
         assert!(props.hydraulic_conductivity() > 0.0);
     }
 
     #[test]
     fn test_permeability_floor() {
         // Test that zero permeability gets floored
-        let props = PorousMediaProperties::new(0.0, 0.3, 1e-6, 1e-3, 1000.0).unwrap();
+        let props = PorousMediaProperties::new(0.0, 0.3, 1e-6, 1e-3, 1000.0)
+            .expect("Zero permeability should be floored to minimum value");
         assert!(props.permeability >= 1e-20);
     }
 
@@ -352,7 +354,8 @@ mod tests {
             dz: 10.0,
         };
 
-        let props = PorousMediaProperties::new(1e-12, 0.3, 1e-6, 1e-3, 1000.0).unwrap();
+        let props = PorousMediaProperties::new(1e-12, 0.3, 1e-6, 1e-3, 1000.0)
+            .expect("Porous media properties should be created with valid parameters");
         let solver = DarcyFlowSolver::new(config, props, 50.0);
         assert!(solver.is_ok());
     }

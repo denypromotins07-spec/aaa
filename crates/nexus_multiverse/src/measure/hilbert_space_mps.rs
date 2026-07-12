@@ -364,7 +364,8 @@ mod tests {
 
     #[test]
     fn test_mps_creation() {
-        let mps = MatrixProductState::new(4, 2).unwrap();
+        let mps = MatrixProductState::new(4, 2)
+            .expect("MPS should initialize with valid parameters");
         assert_eq!(mps.num_sites(), 4);
         assert_eq!(mps.physical_dim(), 2);
     }
@@ -372,21 +373,26 @@ mod tests {
     #[test]
     fn test_bond_dimension_limit() {
         // Create large MPS that would exceed bond dimension
-        let mut mps = MatrixProductState::new(10, 2).unwrap();
+        let mut mps = MatrixProductState::new(10, 2)
+            .expect("MPS should initialize with valid parameters");
         
         // Compress and verify bond dimension stays within limits
         for i in 0..mps.num_sites() {
-            mps.compress_with_svd(i).unwrap();
+            mps.compress_with_svd(i)
+                .expect("SVD compression should succeed");
             assert!(mps.bond_dims()[i + 1] <= MAX_BOND_DIMENSION);
         }
     }
 
     #[test]
     fn test_unitary_measure() {
-        let mut mps = MatrixProductState::new(3, 2).unwrap();
-        mps.normalize().unwrap();
+        let mut mps = MatrixProductState::new(3, 2)
+            .expect("MPS should initialize with valid parameters");
+        mps.normalize()
+            .expect("Normalization should succeed");
         
-        let measure = mps.calculate_measure().unwrap();
+        let measure = mps.calculate_measure()
+            .expect("Measure calculation should succeed");
         assert!((measure - 1.0).abs() < 1e-8);
     }
 }

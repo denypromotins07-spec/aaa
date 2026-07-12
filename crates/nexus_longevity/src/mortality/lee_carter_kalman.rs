@@ -470,7 +470,10 @@ mod tests {
         let mut kf = KalmanFilterState::new();
         kf.state[0] = 200.0; // Exceeds bounds
         
-        kf.predict().unwrap();
+        // Predict should succeed and clamp the state
+        if let Err(e) = kf.predict() {
+            panic!("Predict failed unexpectedly: {:?}", e);
+        }
         
         // Should be clamped
         assert!(kf.state[0] <= kf.kappa_max);
