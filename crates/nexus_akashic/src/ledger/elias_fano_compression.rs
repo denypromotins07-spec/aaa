@@ -47,7 +47,7 @@ impl EliasFanoEncoder {
         }
 
         let num_elements = sequence.len();
-        let max_value = *sequence.last().unwrap();
+        let max_value = sequence[sequence.len() - 1];
         
         // Calculate optimal lower bit width
         // L = ceil(log2(U/n)) where U is universe size, n is element count
