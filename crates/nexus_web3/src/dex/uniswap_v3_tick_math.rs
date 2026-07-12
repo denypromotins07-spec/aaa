@@ -200,8 +200,12 @@ impl TickMath {
     /// Used for Q128.128 fixed-point multiplication
     fn mul_shift(value: U256, multiplier: u128) -> U256 {
         let multiplier_u256 = U256::from(multiplier);
-        let product = value.saturating_mul(multiplier_u256);
-        product >> 128
+        // Use full 512-bit multiplication to avoid overflow in extreme tick calculations
+        // The uint crate provides overflowing_mul which returns (lo, hi) u256 pair
+        let (lo, hi) = value.overflowing_mul(multiplier_u256);
+        // After multiplying, we shift right by 128 bits
+        // This is equivalent to taking hi << 128 | lo >> 128
+        (hi << 128) | (lo >> 128)
     }
 
     /// Calculate price from tick (1.0001^tick)
