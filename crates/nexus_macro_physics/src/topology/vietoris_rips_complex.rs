@@ -447,7 +447,8 @@ mod tests {
 
     #[test]
     fn test_simplex_creation() {
-        let simplex = Simplex::new(&[2, 0, 1], 0.5).unwrap();
+        let simplex = Simplex::new(&[2, 0, 1], 0.5)
+            .expect("Simplex creation should succeed with valid vertices");
         assert_eq!(simplex.dimension(), 2);
         assert_eq!(simplex.vertices(), &[0, 1, 2]);
         assert_eq!(simplex.filtration_value(), 0.5);
@@ -455,7 +456,8 @@ mod tests {
 
     #[test]
     fn test_simplex_faces() {
-        let simplex = Simplex::new(&[0, 1, 2], 0.5).unwrap();
+        let simplex = Simplex::new(&[0, 1, 2], 0.5)
+            .expect("Simplex creation should succeed with valid vertices");
         let faces = simplex.faces();
         
         assert_eq!(faces.len(), 3);
@@ -474,8 +476,10 @@ mod tests {
             1.0, 1.0, 0.0,
         ];
 
-        let builder = VietorisRipsBuilder::new(&distances, 3).unwrap();
-        let complex = builder.build(1.0).unwrap();
+        let builder = VietorisRipsBuilder::new(&distances, 3)
+            .expect("Builder creation should succeed with valid distance matrix");
+        let complex = builder.build(1.0)
+            .expect("Complex build should succeed with valid parameters");
 
         // Should have 3 vertices, 3 edges, and 1 triangle
         assert_eq!(complex.simplices_of_dimension(0).len(), 3);

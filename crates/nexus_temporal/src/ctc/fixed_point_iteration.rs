@@ -209,7 +209,9 @@ impl FixedPointSolver {
         
         // Create result - handle potential None gracefully
         DensityMatrix::new(data, result_dim).unwrap_or_else(|| {
-            DensityMatrix::maximally_mixed(result_dim).unwrap()
+            // Fallback to maximally mixed state, using expect with clear error message
+            DensityMatrix::maximally_mixed(result_dim)
+                .expect("Failed to create maximally mixed state - dimension must be positive")
         })
     }
 

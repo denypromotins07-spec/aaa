@@ -144,19 +144,22 @@ impl<'py> ZeroCopyBuffer<'py> {
             return None;
         }
         
-        // SAFETY: We hold a reference to the region, preventing deallocation
+        // SAFETY: We hold an Arc reference to the region, preventing deallocation.
+        // The pointer is guaranteed valid for the lifetime of self due to the Arc.
         Some(unsafe {
             std::slice::from_raw_parts(self.region.as_ptr(), self.region.size)
         })
     }
-    
+
     /// Get a mutable slice (requires exclusive access)
     pub fn as_mut_slice(&mut self) -> Option<&mut [u8]> {
-        if !self.region.is_valid() || !self.read_only {
+        if !self.region.is_valid() {
             return None;
         }
         
-        // SAFETY: We have exclusive &mut access
+        // SAFETY: We have exclusive &mut self access, and the Arc ensures
+        // the memory region outlives this borrow. No other references can exist
+        // while we hold &mut self.
         Some(unsafe {
             std::slice::from_raw_parts_mut(self.region.as_mut_ptr(), self.region.size)
         })

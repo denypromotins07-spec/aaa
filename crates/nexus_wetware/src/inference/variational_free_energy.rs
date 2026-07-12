@@ -520,7 +520,8 @@ mod tests {
 
     #[test]
     fn test_generative_model_initialization() {
-        let model = GenerativeModel::new(4, 8, 2).unwrap();
+        let model = GenerativeModel::new(4, 8, 2)
+            .expect("Generative model should initialize with valid parameters");
         assert_eq!(model.num_hidden_states, 4);
         assert_eq!(model.num_sensory_states, 8);
         assert_eq!(model.num_actions, 2);
@@ -528,19 +529,21 @@ mod tests {
 
     #[test]
     fn test_free_energy_computation() {
-        let model = GenerativeModel::new(4, 8, 2).unwrap();
+        let model = GenerativeModel::new(4, 8, 2)
+            .expect("Generative model should initialize with valid parameters");
         let mut fe_calc = VariationalFreeEnergy::new(model);
 
         // Compute FE for a valid observation
         let fe = fe_calc.compute_free_energy(0);
         assert!(fe.is_ok());
-        assert!(fe.unwrap().is_finite());
+        assert!(fe.expect("Free energy computation should succeed").is_finite());
     }
 
     #[test]
     fn test_log_sum_exp_stability() {
         let fe_calc = VariationalFreeEnergy::new(
-            GenerativeModel::new(4, 8, 2).unwrap()
+            GenerativeModel::new(4, 8, 2)
+                .expect("Generative model should initialize with valid parameters")
         );
 
         // Test with extreme values

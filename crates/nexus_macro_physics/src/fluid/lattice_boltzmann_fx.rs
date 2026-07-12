@@ -466,7 +466,7 @@ mod tests {
         let solver = LatticeBoltzmannSolver::new(32, 32, 1.0);
         assert!(solver.is_ok());
         
-        let solver = solver.unwrap();
+        let solver = solver.expect("Lattice Boltzmann solver should initialize with valid parameters");
         assert_eq!(solver.dimensions(), (32, 32));
         assert!(solver.viscosity() > 0.0);
     }
