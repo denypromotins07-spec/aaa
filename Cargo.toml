@@ -7,6 +7,8 @@ members = [
     "crates/nexus_statarb",
     "crates/nexus_nlp",
     "crates/nexus_kardashev",
+    "crates/nexus_ingest",
+    "crates/nexus_orderbook",
 ]
 
 [workspace.package]
@@ -19,6 +21,7 @@ repository = "https://github.com/nexus-omega/nexus-omega"
 [workspace.dependencies]
 # Core dependencies
 bumpalo = { version = "3.14", features = ["allocator_api"] }
+crossbeam = "0.8"
 crossbeam-utils = "0.8"
 parking_lot = "0.12"
 tokio = { version = "1.35", features = ["full"] }
@@ -26,6 +29,19 @@ tracing = "0.1"
 thiserror = "1.0"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
+simd-json = "0.13"
+libc = "0.2"
+memmap2 = "0.9"
+wide = "0.7"
+num = "0.4"
+
+# WebSocket support
+tokio-tungstenite = { version = "0.21", features = ["native-tls"] }
+tungstenite = "0.21"
+url = "2.5"
+
+# HTTP client for REST API
+reqwest = { version = "0.11", features = ["json", "rustls-tls"], default-features = false }
 
 # FFI and Python bindings
 pyo3 = { version = "0.20", features = ["extension-module", "abi3-py310"] }

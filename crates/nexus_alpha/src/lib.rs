@@ -4,6 +4,9 @@
 //! including Smart Money Concepts, Order Flow Toxicity, Lead-Lag dynamics, and Bayesian
 //! signal fusion.
 
+pub mod consumer;
+pub mod signals;
+
 pub mod smc {
     //! Smart Money Concepts module
     
@@ -34,6 +37,18 @@ pub mod fusion {
 }
 
 // Re-export main types for convenience
+pub use consumer::{
+    SpscReader, SpscReaderConfig,
+    MicroPriceCalculator, OrderBookLevel, OrderBookSnapshot,
+    RollingWindowBuffer,
+    AlphaConsumer, AlphaConsumerConfig, AlphaSignals,
+};
+pub use signals::{
+    OrderBookImbalance, ObiConfig,
+    VpinToxicity, VpinConfig, VolumeBucket,
+    VolumeBucketAggregator, BucketAggregatorConfig, ClassifiedTrade, TradeSide,
+    CombinedSignals,
+};
 pub use smc::order_blocks::{OrderBlock, OrderBlockDetector};
 pub use smc::liquidity_voids::{FairValueGap, FvgDetector, LiquidityVoid, LiquidityVoidDetector};
 pub use orderflow::volume_profile_simd::{VolumeProfileSimd, TpoCalculator, MarketProfileStats};

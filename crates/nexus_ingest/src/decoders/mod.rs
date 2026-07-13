@@ -1,11 +1,15 @@
-//! Chapter 4: Zero-Copy Protocol Decoders
+//! Chapter 3: Bridge Module
 //!
-//! This module provides ultra-fast, zero-copy decoders for exchange protocols.
+//! This module provides the telemetry bridge for routing data
+//! to SPSC ring buffers with backpressure monitoring.
 
-pub mod simd_json_ws;
-pub mod cme_mdp3;
-pub mod fix_protocol;
+pub mod spsc_telemetry_router;
+pub mod backpressure_monitor;
 
-pub use simd_json_ws::{SimdJsonParser, WebSocketFrame};
-pub use cme_mdp3::{CmeMdp3Decoder, Mdp3Message};
-pub use fix_protocol::{FixParser, FixField};
+pub use spsc_telemetry_router::{
+    BackpressureState, BackpressureStats, NormalizedDelta, NormalizedTrade,
+    TelemetryBridge, TelemetryBridgeConfig,
+};
+pub use backpressure_monitor::{
+    AlertLevel, BackpressureMetrics, BackpressureMonitor, BackpressureMonitorConfig,
+};
