@@ -42,7 +42,10 @@ impl AcousticAnomalyDetector {
             return None;
         }
 
-        let current = self.recent_spectra.back().unwrap();
+        let current = match self.recent_spectra.back() {
+            Some(s) => s,
+            None => return None,
+        };
         
         if current.len() != self.baseline_spectrum.len() {
             return None;

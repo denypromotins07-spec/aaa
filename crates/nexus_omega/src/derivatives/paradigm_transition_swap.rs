@@ -110,9 +110,8 @@ impl ParadigmTransitionSwap {
 
     /// Detect if paradigm shift has occurred
     pub fn detect_shift(&self, current_exponents: &[f64]) -> Result<ParadigmShiftDetection, &'static str> {
-        if self.baseline_spectrum.is_none() || self.baseline_dimension.is_none() {
-            return Err("Baseline not set");
-        }
+        let baseline_spectrum = self.baseline_spectrum.as_ref().ok_or("Baseline not set")?;
+        let baseline_dim = self.baseline_dimension.ok_or("Baseline dimension not set")?;
 
         let lyap_config = LyapunovConfig::default();
         let lyap_calc = LyapunovCalculator::new(lyap_config);
@@ -125,7 +124,6 @@ impl ParadigmTransitionSwap {
         let ky_calc = KaplanYorkeCalculator::new(ky_config);
         
         let current_dim = ky_calc.calculate(&current_spectrum.exponents)?;
-        let baseline_dim = self.baseline_dimension.unwrap();
 
         let dim_change = current_dim.dimension - baseline_dim;
         let abs_change = dim_change.abs();
@@ -138,7 +136,7 @@ impl ParadigmTransitionSwap {
             }
         } else {
             // Check for volatility regime change via max Lyapunov exponent
-            let baseline_max = self.baseline_spectrum.as_ref().unwrap().max_exponent;
+            let baseline_max = baseline_spectrum.max_exponent;
             let current_max = current_spectrum.max_exponent;
             let vol_change = (current_max - baseline_max).abs();
 

@@ -4,7 +4,7 @@ use nexus_timeseries::prelude::*;
 
 #[test]
 fn test_fracdiff_fixed_window_full_pipeline() {
-    let mut diff = FixedWindowFracDiff::new(0.4, 50).unwrap();
+    let mut diff = FixedWindowFracDiff::new(0.4, 50).expect("Failed to create FracDiff");
     
     // Generate synthetic price series with memory
     let mut prices = Vec::new();
@@ -46,5 +46,7 @@ fn test_weight_cache_efficiency() {
     // Should find closest match
     let closest = cache.get_closest(0.41);
     assert!(closest.is_some());
-    assert!((closest.unwrap().d() - 0.4).abs() < 0.05);
+    if let Some(c) = closest {
+        assert!((c.d() - 0.4).abs() < 0.05);
+    }
 }

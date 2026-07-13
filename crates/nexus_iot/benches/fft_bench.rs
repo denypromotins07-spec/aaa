@@ -2,7 +2,7 @@ use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use nexus_iot::dsp::simd_fft_vibration::SimdFftProcessor;
 
 fn bench_fft_1024(c: &mut Criterion) {
-    let fft = SimdFftProcessor::new(1024).unwrap();
+    let fft = SimdFftProcessor::new(1024).expect("Failed to create FFT processor");
     let mut real = vec![0.0; 1024];
     let mut imag = vec![0.0; 1024];
     
@@ -16,7 +16,8 @@ fn bench_fft_1024(c: &mut Criterion) {
         b.iter(|| {
             let mut r = real.clone();
             let mut i = imag.clone();
-            fft.compute_fft(black_box(&mut r), black_box(&mut i)).unwrap();
+            fft.compute_fft(black_box(&mut r), black_box(&mut i))
+                .expect("FFT computation failed");
         })
     });
 }
