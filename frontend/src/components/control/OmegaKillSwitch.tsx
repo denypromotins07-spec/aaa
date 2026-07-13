@@ -2,12 +2,14 @@
 
 import React, { useState, useCallback, useRef } from 'react';
 import { getNexusRPC } from '../../hooks/useNexusRPC';
+import { useIsEpistemicLockdown } from '../../hooks/useRealityAnchor';
 
 interface OmegaKillSwitchProps {
   onHalt?: () => void;
 }
 
 export default function OmegaKillSwitch({ onHalt }: OmegaKillSwitchProps) {
+  const isEpistemicLockdown = useIsEpistemicLockdown();
   const [isArmed, setIsArmed] = useState(false);
   const [countdown, setCountdown] = useState<number | null>(null);
   const [isExecuting, setIsExecuting] = useState(false);
@@ -15,6 +17,12 @@ export default function OmegaKillSwitch({ onHalt }: OmegaKillSwitchProps) {
   const rpcRef = useRef(getNexusRPC());
 
   const startCountdown = useCallback(() => {
+    // CRITICAL: Block kill switch during epistemic lockdown to prevent confused operator actions
+    if (isEpistemicLockdown) {
+      console.warn('[KillSwitch] Action blocked - Epistemic Humility Mode active');
+      return;
+    }
+
     if (!isArmed) {
       setIsArmed(true);
       let count = 3;
@@ -34,7 +42,7 @@ export default function OmegaKillSwitch({ onHalt }: OmegaKillSwitchProps) {
         }
       }, 1000);
     }
-  }, [isArmed]);
+  }, [isArmed, isEpistemicLockdown]);
 
   const cancelCountdown = useCallback(() => {
     if (countdownRef.current) {
@@ -46,6 +54,14 @@ export default function OmegaKillSwitch({ onHalt }: OmegaKillSwitchProps) {
   }, []);
 
   const executeHalt = useCallback(async () => {
+    // Double-check lockdown state before executing critical command
+    if (isEpistemicLockdown) {
+      console.warn('[KillSwitch] Halt execution blocked - Epistemic Humility Mode active');
+      setIsArmed(false);
+      setCountdown(null);
+      return;
+    }
+
     setIsExecuting(true);
     
     try {
@@ -65,7 +81,7 @@ export default function OmegaKillSwitch({ onHalt }: OmegaKillSwitchProps) {
       setIsExecuting(false);
       setIsArmed(false);
     }
-  }, [onHalt]);
+  }, [onHalt, isEpistemicLockdown]);
 
   React.useEffect(() => {
     return () => {
@@ -76,6 +92,7 @@ export default function OmegaKillSwitch({ onHalt }: OmegaKillSwitchProps) {
   }, []);
 
   const getStatusColor = () => {
+    if (isEpistemicLockdown) return 'from-gray-600 to-gray-800';
     if (isExecuting) return 'from-red-600 to-red-800';
     if (countdown !== null) return 'from-yellow-500 to-orange-600';
     if (isArmed) return 'from-orange-500 to-red-600';
@@ -83,6 +100,7 @@ export default function OmegaKillSwitch({ onHalt }: OmegaKillSwitchProps) {
   };
 
   const getGlowColor = () => {
+    if (isEpistemicLockdown) return 'rgba(100, 100, 100, 0.2)';
     if (isExecuting) return 'rgba(255, 0, 0, 0.8)';
     if (countdown !== null) return 'rgba(255, 200, 0, 0.8)';
     if (isArmed) return 'rgba(255, 100, 0, 0.6)';

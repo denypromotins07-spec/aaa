@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { getNexusRPC, CommandCode, RpcMessageType } from '../../hooks/useNexusRPC';
+import { useIsEpistemicLockdown } from '../../hooks/useRealityAnchor';
 
 interface SliderConfig {
   id: string;
@@ -16,6 +17,7 @@ interface SliderConfig {
 }
 
 export default function ControlPlaneDashboard() {
+  const isEpistemicLockdown = useIsEpistemicLockdown();
   const [isConnected, setIsConnected] = useState(false);
   const [pendingSync, setPendingSync] = useState<Set<string>>(new Set());
   const rpcRef = useRef(getNexusRPC());
@@ -92,6 +94,12 @@ export default function ControlPlaneDashboard() {
   }, []);
 
   const handleSliderChange = useCallback(async (slider: SliderConfig, newValue: number) => {
+    // CRITICAL: Block all RPC commands during epistemic lockdown
+    if (isEpistemicLockdown) {
+      console.warn('[ControlPlane] Command blocked - Epistemic Humility Mode active');
+      return;
+    }
+
     setSliderValues((prev) => ({ ...prev, [slider.id]: newValue }));
     setPendingSync((prev) => new Set(prev).add(slider.id));
 
@@ -109,9 +117,15 @@ export default function ControlPlaneDashboard() {
         return next;
       });
     }
-  }, []);
+  }, [isEpistemicLockdown]);
 
   const handlePreTradeLimitsUpdate = useCallback(async () => {
+    // CRITICAL: Block all RPC commands during epistemic lockdown
+    if (isEpistemicLockdown) {
+      console.warn('[ControlPlane] Pre-trade limits update blocked - Epistemic Humility Mode active');
+      return;
+    }
+
     setPendingSync((prev) => new Set(prev).add('pre-trade'));
     
     try {
@@ -124,7 +138,7 @@ export default function ControlPlaneDashboard() {
         return next;
       });
     }
-  }, [preTradeLimits]);
+  }, [preTradeLimits, isEpistemicLockdown]);
 
   return (
     <div className="p-6 space-y-8">

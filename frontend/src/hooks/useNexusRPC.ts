@@ -203,6 +203,12 @@ export class NexusRPCClient {
   }
 
   private async sendCommand(command: CommandCode, payload?: Record<string, unknown>): Promise<RpcEnvelope> {
+    // Check for epistemic lockdown - block all commands except heartbeat
+    if (this.isLockdownActive() && command !== CommandCode.CMD_GET_STATUS) {
+      console.warn('[NEXUS RPC] Command blocked due to epistemic humility lockdown');
+      throw new Error('EXECUTION_BLOCKED_EPISTEMIC_LOCKDOWN');
+    }
+
     if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
       throw new Error('WebSocket not connected');
     }
