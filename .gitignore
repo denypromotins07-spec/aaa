@@ -1,33 +1,43 @@
 ```
-# Rust/Cargo
+# Rust/Cargo specific ignores
 target/
 Cargo.lock
+**/*.rs.bk
+**/*.tmp
 
 # Dependencies
 **/node_modules/
+**/.venv/
+**/venv/
+**/.env
+**/.env.*
 
-# Python (if present)
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-env/
-venv/
-.venv/
-.ENV
-.venv.bak/
-env.bak/
+# Build artifacts
+**/dist/
+**/build/
+**/*.o
+**/*.obj
+**/*.a
+**/*.so
+**/*.dll
+**/*.exe
 
-# Logs
-*.log
+# Editor/IDE files
+.vscode/
+.idea/
+**/*.swp
+**/*.swo
+**/*.tmp
 
-# OS generated files
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
+# System files
+**/.DS_Store
+**/Thumbs.db
+**/*.log
+
+# Cache directories
+**/__pycache__/
+**/.mypy_cache/
+**/.pytest_cache/
+**/.gradle/
+**/target/
 ```
