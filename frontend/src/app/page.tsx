@@ -8,6 +8,12 @@ import ControlPlaneDashboard from '@/components/control/ControlPlaneDashboard';
 import OmegaKillSwitch from '@/components/control/OmegaKillSwitch';
 import PnLWaterfallCanvas from '@/components/risk/PnLWaterfallCanvas';
 import CVaRSpeedometer from '@/components/risk/CVaRSpeedometer';
+import SiliconThermalHeatmap from '@/components/hardware/SiliconThermalHeatmap';
+import PhotonicMeshVisualizer from '@/components/hardware/PhotonicMeshVisualizer';
+import SwarmTopologyGraph from '@/components/swarm/SwarmTopologyGraph';
+import RaftConsensusTimeline from '@/components/swarm/RaftConsensusTimeline';
+import XDPPacketFlow from '@/components/network/XDPPacketFlow';
+import DarkPoolSankey from '@/components/network/DarkPoolSankey';
 import { useNexusSocket } from '@/hooks/useNexusSocket';
 import { useConnectionStatus, useSystemHealth } from '@/store/nexusStore';
 import { useState, useEffect } from 'react';
@@ -55,13 +61,11 @@ export default function Home() {
     <DashboardShell>
       <main className="flex-1 p-6 overflow-auto space-y-6">
         
-        {/* Top Row: Alpha Topology & Kill Switch */}
+        {/* SECTION 1: Alpha Topology & Kill Switch (Stage 2) */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 h-[400px]">
-          {/* 3D Alpha Topology - Takes 3 columns */}
           <div className="lg:col-span-3 glass-panel rounded-lg p-4 border border-glass-border relative overflow-hidden">
             <AlphaTopology3D alphas={MOCK_ALPHAS} isRegimeShift={isRegimeShift} />
             
-            {/* Regime toggle for demo */}
             <button
               onClick={() => setIsRegimeShift(!isRegimeShift)}
               className={`absolute top-4 right-4 px-3 py-1 text-xs font-mono rounded border transition-all ${
@@ -74,13 +78,12 @@ export default function Home() {
             </button>
           </div>
           
-          {/* Omega Kill Switch */}
           <div className="glass-panel rounded-lg border border-glass-border overflow-hidden">
             <OmegaKillSwitch onHalt={() => console.log('[UI] Halted by user')} />
           </div>
         </div>
 
-        {/* Middle Row: Orderbook Heatmap & Price Tape */}
+        {/* SECTION 2: Orderbook Heatmap & Price Tape (Stage 1) */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 glass-panel rounded-lg p-4 border border-glass-border">
             <h2 className="text-sm font-mono text-neon-cyan mb-4 tracking-wider">
@@ -101,16 +104,64 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Bottom Row: Control Plane & Risk Surface */}
+        {/* SECTION 3: Hardware Telemetry (Stage 3) */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-[350px]">
+          <div className="glass-panel rounded-lg p-4 border border-glass-border">
+            <h2 className="text-sm font-mono text-neon-cyan mb-4 tracking-wider">
+              SILICON THERMAL MAP :: FPGA
+            </h2>
+            <SiliconThermalHeatmap width={600} height={300} minTemp={30} maxTemp={95} />
+          </div>
+          
+          <div className="glass-panel rounded-lg p-4 border border-glass-border">
+            <h2 className="text-sm font-mono text-neon-magenta mb-4 tracking-wider">
+              PHOTONIC MZI MESH :: STAGE 32
+            </h2>
+            <PhotonicMeshVisualizer width={600} height={300} />
+          </div>
+        </div>
+
+        {/* SECTION 4: Swarm Topology (Stage 3) */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[400px]">
+          <div className="lg:col-span-2 glass-panel rounded-lg p-4 border border-glass-border">
+            <h2 className="text-sm font-mono text-neon-cyan mb-4 tracking-wider">
+              SWARM TOPOLOGY :: RAFT CONSENSUS
+            </h2>
+            <SwarmTopologyGraph width={800} height={350} />
+          </div>
+          
+          <div className="glass-panel rounded-lg p-4 border border-glass-border">
+            <h2 className="text-sm font-mono text-neon-yellow mb-4 tracking-wider">
+              RAFT EVENT TIMELINE
+            </h2>
+            <RaftConsensusTimeline width={350} height={350} />
+          </div>
+        </div>
+
+        {/* SECTION 5: Network Flow (Stage 3) */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-[350px]">
+          <div className="glass-panel rounded-lg p-4 border border-glass-border">
+            <h2 className="text-sm font-mono text-neon-cyan mb-4 tracking-wider">
+              XDP PACKET FLOW :: SMARTNIC
+            </h2>
+            <XDPPacketFlow width={700} height={300} />
+          </div>
+          
+          <div className="glass-panel rounded-lg p-4 border border-glass-border">
+            <h2 className="text-sm font-mono text-neon-green mb-4 tracking-wider">
+              DARK POOL ROUTING :: TCA
+            </h2>
+            <DarkPoolSankey width={700} height={300} />
+          </div>
+        </div>
+
+        {/* SECTION 6: Control Plane & Risk Surface (Stage 2) */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Control Plane - Takes 2 columns */}
           <div className="lg:col-span-2 glass-panel rounded-lg border border-glass-border">
             <ControlPlaneDashboard />
           </div>
           
-          {/* Risk Surface - CVaR Speedometer & PnL Waterfall */}
           <div className="space-y-6">
-            {/* CVaR Speedometer */}
             <div className="glass-panel rounded-lg p-4 border border-glass-border">
               <h2 className="text-sm font-mono text-neon-red mb-2 tracking-wider text-center">
                 STAGE 11 EVT / STAGE 19 CVaR
@@ -118,7 +169,6 @@ export default function Home() {
               <CVaRSpeedometer currentValue={cvarValue} maxValue={0.1} criticalThreshold={0.05} />
             </div>
             
-            {/* PnL Waterfall */}
             <div className="glass-panel rounded-lg p-4 border border-glass-border">
               <h2 className="text-sm font-mono text-neon-green mb-2 tracking-wider">
                 CUMULATIVE PnL WATERFALL

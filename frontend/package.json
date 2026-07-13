@@ -19,13 +19,16 @@
     "postcss": "^8.4.38",
     "@react-three/fiber": "^8.16.2",
     "three": "^0.163.0",
-    "@types/three": "^0.163.0"
+    "@types/three": "^0.163.0",
+    "react-force-graph-3d": "^1.24.4",
+    "d3-force": "^3.0.0"
   },
   "devDependencies": {
     "typescript": "^5.4.5",
     "@types/node": "^20.12.7",
     "@types/react": "^18.3.1",
     "@types/react-dom": "^18.3.0",
+    "@types/d3-force": "^3.0.10",
     "eslint": "^8.57.0",
     "eslint-config-next": "14.2.3"
   }

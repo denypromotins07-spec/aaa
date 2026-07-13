@@ -2,57 +2,66 @@
 # Dependencies
 node_modules/
 
-# Build outputs
+# Build artifacts
 dist/
 build/
 .next/
-out/
+.nuxt/
+public/dist/
 
-# TypeScript/JavaScript
-*.tsbuildinfo
-*.js.map
-*.jsx.map
-*.ts.map
-
-# Logs
+# Logs and temp files
 *.log
+*.tmp
+*.swp
 
 # Environment variables
 .env
 .env.local
-.env.*
-!.env.example
+*.env.*
 
-# IDE files
+# Editors
 .vscode/
 .idea/
 *.swp
 *.swo
 
-# OS files
+# OS generated files
 .DS_Store
 Thumbs.db
 
-# Coverage
+# Coverage reports
 coverage/
 htmlcov/
 .coverage
 
-# Python (if present)
+# Python specific
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
 .Python
-env/
-venv/
-.venv/
-pip-log.txt
-pip-delete-this-directory.txt
-.pytest_cache/
-.mypy_cache/
+*.so
+*.egg-info/
+.eggs/
+
+# Node.js specific
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# TypeScript/JavaScript build output
+*.js.map
+*.tsbuildinfo
 
 # Temporary files
 *.tmp
 *.temp
+*.bak
+*.backup
+
+# Cache directories
+.cache/
+.mypy_cache/
+.pytest_cache/
+.jest/
 ```
