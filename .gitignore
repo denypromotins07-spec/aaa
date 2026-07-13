@@ -1,1 +1,33 @@
-Nothing should be ignored since the added files are all source code files (.tsx, .ts) and there are no build artifacts, dependencies, or temporary files in the changes.
+```
+# Rust/Cargo
+target/
+Cargo.lock
+
+# Dependencies
+**/node_modules/
+
+# Python (if present)
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+.ENV
+.venv.bak/
+env.bak/
+
+# Logs
+*.log
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+```
