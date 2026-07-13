@@ -213,13 +213,11 @@ impl AssociativeMemoryExt for AssociativeItemMemory {
 // Add accessor methods to AssociativeItemMemory
 impl AssociativeItemMemory {
     fn items(&self) -> &[crate::memory::associative_item_memory::MemoryItem] {
-        // Using internal access
-        &[]
+        &self.items
     }
     
     fn items_mut(&mut self) -> &mut Vec<crate::memory::associative_item_memory::MemoryItem> {
-        // Placeholder - actual implementation would access internal field
-        unimplemented!("Use direct field access")
+        &mut self.items
     }
 }
 
