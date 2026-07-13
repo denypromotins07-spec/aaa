@@ -274,7 +274,7 @@ class ImplicitQuantileNetwork(nn.Module):
         return stats
 
 
-class Distributional ReplayBuffer:
+class DistributionalReplayBuffer:
     """
     Replay buffer optimized for distributional RL training.
     
