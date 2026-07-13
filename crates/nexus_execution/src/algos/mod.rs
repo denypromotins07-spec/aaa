@@ -1,5 +1,26 @@
-//! Nexus Execution Algos Module
+//! Execution Algorithms Module
+//! 
+//! Iceberg Sniper and Queue Position Tracker for smart order execution.
 
-pub mod iceberg_state;
-pub mod pov_vwap_tracker;
-pub mod child_order_generator;
+pub mod iceberg_sniper;
+pub mod queue_position_tracker;
+
+pub use iceberg_sniper::{
+    IcebergSniper,
+    IcebergConfig,
+    IcebergState,
+    IcebergSlice,
+    SliceState,
+    OrderSide,
+    IcebergStats,
+};
+
+pub use queue_position_tracker::{
+    QueuePositionTracker,
+    QueueTrackerConfig,
+    QueuePriority,
+    QueueAction,
+    IcebergDetection,
+    OrderBookLevel,
+    QueueTrackerStats,
+};
