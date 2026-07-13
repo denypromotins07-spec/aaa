@@ -1,23 +1,93 @@
 ```
-# Compiled and build artifacts
-*.o
-*.obj
-*.exe
-*.dll
-*.so
-*.a
-*.out
 # Dependencies
+node_modules/
 target/
-# Logs and temp files
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
 *.log
-*.tmp
+.git/modules/
+.DS_Store
+.hg/
+.svn/
+.wafpickle-*
+build/
+.sconsign.dblite
+._*
+.DS_Store
+.TemporaryItems
+.Trashes
+ehthumbs.db
+Icon?
+Thumbs.db
+.directory
+.fuse_hidden*
+.metadata
+.spyproject/
+.settings/
+.mypy_cache/
+.pytest_cache/
+.hypothesis/
+
+# Rust
+Cargo.lock
+**/*.rs.bk
+target/
+.Cargo.toml.swp
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+**/node_modules/
+**/dist/
+**/build/
+**/coverage/
+**/tmp/
+**/logs/
+**/.next/
+**/out/
+**/public/build/
+**/.nuxt/
+**/nuxt.dist/
+**/.output/
+**/.vercel/
+**/.netlify/
+
+# IDE
+.vscode/
+.idea/
 *.swp
+*.swo
+*~
+
 # Environment
 .env
 .env.local
 .env.*
-# Editors
-.vscode/
-.idea/
+!.env.example
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
 ```
