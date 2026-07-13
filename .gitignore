@@ -1,17 +1,37 @@
-```
-# Python
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-
-# Build artifacts
-build/
-dist/
+```rust
+# Compiled and build artifacts
+*.o
+*.obj
+*.a
+*.lib
+*.dll
+*.so
+*.dylib
+*.exe
+*.out
 
 # Dependencies
-.venv/
-venv/
+target/
+**/node_modules/
+**/venv/
+**/env/
+**/.venv/
+**/.env/
+
+# Rust-specific
+Cargo.lock
+**/Cargo.lock
+**/deps/
+**/examples/
+**/incremental/
+
+# Logs and temp files
+*.log
+*.tmp
+*.swp
+*.swo
+
+# Environment
 .env
 .env.local
 *.env.*
@@ -19,18 +39,10 @@ venv/
 # Editors
 .vscode/
 .idea/
-*.swp
-*.swo
+**/*.swp
+**/*.swo
 
-# Logs
-*.log
-
-# Coverage
-.coverage
-coverage/
-htmlcov/
-
-# Cache
-.mypy_cache/
-.pytest_cache/
+# OS
+.DS_Store
+Thumbs.db
 ```
