@@ -1,1 +1,35 @@
-Nothing should be ignored since the added files are all source code files (.tsx, .ts) and there are no build artifacts, dependencies, or temporary files in the changes.
+```
+# Dependencies
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.env
+.env.local
+.env.*
+
+# Build artifacts
+dist/
+build/
+*.egg-info/
+
+# Virtual environments
+venv/
+.venv/
+env/
+.ENV/
+
+# Testing
+.coverage
+coverage/
+htmlcov/
+.pytest_cache/
+.mypy_cache/
+
+# Logs
+*.log
+
+# OS generated files
+.DS_Store
+Thumbs.db
+```
