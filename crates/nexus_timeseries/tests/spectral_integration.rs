@@ -5,16 +5,16 @@ use nexus_timeseries::prelude::*;
 #[test]
 fn test_fft_round_trip() {
     let n = 128;
-    let mut fft = ZeroAllocFft::new(n).unwrap();
+    let mut fft = ZeroAllocFft::new(n).expect("Failed to create FFT");
     
     // Generate test signal
     let input: Vec<f64> = (0..n).map(|i| (i as f64 * 0.1).sin()).collect();
     
     // Forward FFT
-    let freq = fft.fft(&input).unwrap().to_vec();
+    let freq = fft.fft(&input).expect("FFT forward failed").to_vec();
     
     // Inverse FFT
-    let reconstructed = fft.ifft(&freq).unwrap();
+    let reconstructed = fft.ifft(&freq).expect("FFT inverse failed");
     
     // Check reconstruction accuracy
     for i in 0..n {
@@ -24,13 +24,13 @@ fn test_fft_round_trip() {
 
 #[test]
 fn test_wavelet_decomposition_reconstruction() {
-    let filters = WaveletFilters::daubechies(4).unwrap();
+    let filters = WaveletFilters::daubechies(4).expect("Failed to create wavelet filters");
     let mut dwt = ZeroAllocDwt::new(filters, 64, 3);
     
     let signal: Vec<f64> = (0..64).map(|i| (i as f64 * 0.2).sin()).collect();
     
-    let coeffs = dwt.decompose(&signal, 2).unwrap();
-    let reconstructed = dwt.reconstruct(&coeffs).unwrap();
+    let coeffs = dwt.decompose(&signal, 2).expect("Wavelet decomposition failed");
+    let reconstructed = dwt.reconstruct(&coeffs).expect("Wavelet reconstruction failed");
     
     assert_eq!(reconstructed.len(), signal.len());
 }
@@ -38,7 +38,7 @@ fn test_wavelet_decomposition_reconstruction() {
 #[test]
 fn test_bandpass_alpha_extraction() {
     let n = 256;
-    let mut filter = BandpassAlphaFilter::new(n, 2, 4).unwrap();
+    let mut filter = BandpassAlphaFilter::new(n, 2, 4).expect("Failed to create bandpass filter");
     
     // Multi-frequency signal
     let signal: Vec<f64> = (0..n)
@@ -49,9 +49,9 @@ fn test_bandpass_alpha_extraction() {
         })
         .collect();
     
-    let alpha = filter.extract_alpha(&signal).unwrap();
+    let alpha = filter.extract_alpha(&signal).expect("Alpha extraction failed");
     assert_eq!(alpha.len(), n);
     
-    let snr = filter.snr(&signal).unwrap();
+    let snr = filter.snr(&signal).expect("SNR calculation failed");
     assert!(snr.is_finite());
 }

@@ -1,48 +1,23 @@
-```rust
+```
 # Compiled and build artifacts
 *.o
 *.obj
-*.a
-*.lib
+*.exe
 *.dll
 *.so
-*.dylib
-*.exe
+*.a
 *.out
-
 # Dependencies
 target/
-**/node_modules/
-**/venv/
-**/env/
-**/.venv/
-**/.env/
-
-# Rust-specific
-Cargo.lock
-**/Cargo.lock
-**/deps/
-**/examples/
-**/incremental/
-
 # Logs and temp files
 *.log
 *.tmp
 *.swp
-*.swo
-
 # Environment
 .env
 .env.local
-*.env.*
-
+.env.*
 # Editors
 .vscode/
 .idea/
-**/*.swp
-**/*.swo
-
-# OS
-.DS_Store
-Thumbs.db
 ```

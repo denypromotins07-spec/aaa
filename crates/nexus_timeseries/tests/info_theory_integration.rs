@@ -11,8 +11,11 @@ fn test_shannon_entropy_uniform() {
         entropy.update((i % 10) as f64);
     }
     
-    let h = entropy.entropy().unwrap();
-    assert!(h > 2.0); // log(10) ≈ 2.3
+    if let Some(h) = entropy.entropy() {
+        assert!(h > 2.0); // log(10) ≈ 2.3
+    } else {
+        panic!("Expected entropy value, got None");
+    }
 }
 
 #[test]
@@ -24,8 +27,11 @@ fn test_shannon_entropy_concentrated() {
         entropy.update(5.0);
     }
     
-    let h = entropy.entropy().unwrap();
-    assert!(h < 0.1); // Near zero
+    if let Some(h) = entropy.entropy() {
+        assert!(h < 0.1); // Near zero
+    } else {
+        panic!("Expected entropy value, got None");
+    }
 }
 
 #[test]
