@@ -6,36 +6,31 @@ __pycache__/
 *.pyd
 
 # Build artifacts
-core_engine/alignment/__pycache__/
+build/
+dist/
+
+# Dependencies
+.venv/
+venv/
+.env
+.env.local
+*.env.*
+
+# Editors
+.vscode/
+.idea/
+*.swp
+*.swo
 
 # Logs
 *.log
-
-# Environment variables
-.env
-.env.local
-.env.*
-
-# IDE
-.vscode/
-.idea/
-
-# Dependencies
-venv/
-.venv/
-node_modules/
 
 # Coverage
 .coverage
 coverage/
 htmlcov/
 
-# Testing
-.pytest_cache/
+# Cache
 .mypy_cache/
-
-# Distribution / packaging
-dist/
-build/
-*.egg-info/
+.pytest_cache/
 ```
