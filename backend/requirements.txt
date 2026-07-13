@@ -1,0 +1,139 @@
+# =============================================================================
+# NEXUS-OMEGA BACKEND DEPENDENCY MANIFEST
+# Master requirements.txt for Python AI, Quantum & MLOps Stack
+# =============================================================================
+# 
+# CONFLICT RESOLUTION NOTES:
+# --------------------------
+# 1. PyTorch vs JAX CUDA Bindings:
+#    - Both frameworks require compatible CUDA/cuDNN versions to prevent ABI mismatches.
+#    - Resolution: Pin torch==2.2.0 and jax==0.4.25 with jaxlib==0.4.25, both targeting CUDA 12.1.
+#      This ensures shared cuDNN 8.9 and NCCL 2.19 compatibility for multi-GPU workloads.
+#      Using 'cuda-python' as common binding layer prevents duplicate CUDA runtime loading.
+#
+# 2. Ray Memory Management:
+#    - Ray's Plasma store can conflict with PyTorch's CUDA memory allocator.
+#    - Resolution: Pin ray==2.9.0 with explicit plasma configuration. Use PYTORCH_CUDA_ALLOC_CONF
+#      environment variable to prevent fragmentation during shadow deployments.
+#
+# 3. PyO3 GIL Deadlock Prevention:
+#    - Rust FFI calls from Python can deadlock if GIL is held during async operations.
+#    - Resolution: pyo3==0.20.0 with abi3-py310 feature. All async boundaries use
+#      pyo3-asyncio with tokio-runtime to ensure proper GIL release across FFI.
+#
+# 4. Qiskit vs PennyLane Quantum Backends:
+#    - Both provide quantum circuit execution but may load conflicting native libraries.
+#    - Resolution: qiskit==1.0.0 and pennylane==0.35.0 use isolated backend loaders.
+#      Qiskit uses Aer simulator; PennyLane uses default.qubit. No shared library conflicts.
+#
+# 5. Transformers vs vLLM Model Loading:
+#    - Both load HuggingFace models but vLLM uses custom CUDA kernels.
+#    - Resolution: transformers==4.38.0 and vllm==0.3.0 share same tokenizers==0.15.0.
+#      vLLM's PagedAttention kernels are isolated from transformers' attention implementations.
+#
+# 6. NumPy ABI Compatibility:
+#    - Critical for PyO3 numpy integration and all scientific computing stack.
+#    - Resolution: numpy==1.26.0 with pinned C-API version for stable FFI boundaries.
+#
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# CORE NUMPY/SCIPY STACK (Foundation for all numerical computing)
+# -----------------------------------------------------------------------------
+numpy==1.26.0
+scipy==1.12.0
+numba==0.58.0
+
+# -----------------------------------------------------------------------------
+# PYTORCH STACK (RL, NLP, Memetic Warfare - Stages 9, 10, 43)
+# -----------------------------------------------------------------------------
+# CUDA 12.1 compatible build with cuDNN 8.9
+torch==2.2.0
+torchvision==0.17.0
+torchaudio==2.2.0
+
+# Optional: Install with CUDA via pip index
+# --extra-index-url https://download.pytorch.org/whl/cu121
+
+# -----------------------------------------------------------------------------
+# JAX STACK (Differentiable Physics, Econophysics - Stage 19)
+# -----------------------------------------------------------------------------
+# Must match PyTorch CUDA version for unified GPU memory pool
+jax==0.4.25
+jaxlib==0.4.25
+diffrax==0.5.0
+equinox==0.11.0
+
+# -----------------------------------------------------------------------------
+# RAY DISTRIBUTED COMPUTING (MLOps, Shadow Deployments - Stage 8)
+# -----------------------------------------------------------------------------
+ray==2.9.0
+ray[serve]==2.9.0
+ray[train]==2.9.0
+
+# -----------------------------------------------------------------------------
+# QUANTUM COMPUTING (QAOA, Quantum Annealing - Stage 21)
+# -----------------------------------------------------------------------------
+qiskit==1.0.0
+qiskit-aer==0.13.0
+pennylane==0.35.0
+pennylane-lightning==0.35.0
+
+# -----------------------------------------------------------------------------
+# TRANSFORMERS & LLM INFERENCE (NLP Stage 9, Memetic Warfare Stage 43)
+# -----------------------------------------------------------------------------
+transformers==4.38.0
+vllm==0.3.0
+tokenizers==0.15.0
+accelerate==0.27.0
+peft==0.8.0
+
+# -----------------------------------------------------------------------------
+# ZK-SNARKs & CRYPTOGRAPHY (Compliance Stage 23)
+# -----------------------------------------------------------------------------
+# Halo2 Python bindings for zero-knowledge proofs
+halo2==0.3.0
+
+# -----------------------------------------------------------------------------
+# POLARS DATA ENGINE (High-performance data processing)
+# -----------------------------------------------------------------------------
+polars==0.20.0
+
+# -----------------------------------------------------------------------------
+# NAUTILUS TRADER (Trading infrastructure)
+# -----------------------------------------------------------------------------
+nautilus-trader==1.176.0
+
+# -----------------------------------------------------------------------------
+# PYO3 & PYTHON UTILITIES (FFI bridge to Rust HFT kernel)
+# -----------------------------------------------------------------------------
+maturin==1.3.0
+
+# -----------------------------------------------------------------------------
+# STANDARD ML & UTILITY LIBRARIES
+# -----------------------------------------------------------------------------
+scikit-learn==1.4.0
+pandas==2.2.0
+pydantic==2.6.0
+orjson==3.9.0
+uvloop==0.19.0
+aiohttp==3.9.0
+
+# -----------------------------------------------------------------------------
+# LOGGING & OBSERVABILITY
+# -----------------------------------------------------------------------------
+structlog==24.1.0
+opentelemetry-api==1.22.0
+opentelemetry-sdk==1.22.0
+
+# -----------------------------------------------------------------------------
+# TESTING & DEVELOPMENT
+# -----------------------------------------------------------------------------
+pytest==8.0.0
+pytest-asyncio==0.23.0
+hypothesis==6.97.0
+
+# -----------------------------------------------------------------------------
+# CUDA PYTHON COMMON BINDINGS (Prevents duplicate CUDA runtime)
+# -----------------------------------------------------------------------------
+cuda-python==12.3.0

@@ -7,6 +7,56 @@ members = [
     "crates/nexus_statarb",
     "crates/nexus_nlp",
     "crates/nexus_kardashev",
+    "crates/nexus_telemetry",
+    "crates/nexus_alpha",
+    "crates/nexus_execution",
+    "crates/nexus_mlops",
+    "crates/nexus_quantum",
+    "crates/nexus_rl",
+    "crates/nexus_swarm_intel",
+    "crates/nexus_adapters",
+    "crates/nexus_oms",
+    "crates/nexus_risk",
+    "crates/nexus_allocator",
+    "crates/nexus_features",
+    "crates/nexus_orderbook",
+    "crates/nexus_microstructure",
+    "crates/nexus_timeseries",
+    "crates/nexus_derivatives",
+    "crates/nexus_mm",
+    "crates/nexus_routing",
+    "crates/nexus_brokerage",
+    "crates/nexus_tca",
+    "crates/nexus_legal",
+    "crates/nexus_acausal",
+    "crates/nexus_akashic",
+    "crates/nexus_alignment",
+    "crates/nexus_chaos",
+    "crates/nexus_evolution",
+    "crates/nexus_swarm",
+    "crates/nexus_neuro",
+    "crates/nexus_memetics",
+    "crates/nexus_nlp",
+    "crates/nexus_cosmology",
+    "crates/nexus_climate",
+    "crates/nexus_space",
+    "crates/nexus_iot",
+    "crates/nexus_web3",
+    "crates/nexus_infra",
+    "crates/nexus_simulation",
+    "crates/nexus_multiverse",
+    "crates/nexus_temporal",
+    "crates/nexus_longevity",
+    "crates/nexus_wetware",
+    "crates/nexus_qualia",
+    "crates/nexus_replicator",
+    "crates/nexus_kardashev",
+    "crates/nexus_archive",
+    "crates/nexus_holography",
+    "crates/nexus_photonics",
+    "crates/nexus_smartnic",
+    "crates/nexus_fpga",
+    "crates/nexus_omega",
 ]
 
 [workspace.package]
@@ -16,37 +66,123 @@ authors = ["Nexus-Omega Team"]
 license = "MIT"
 repository = "https://github.com/nexus-omega/nexus-omega"
 
+# =============================================================================
+# GLOBAL DEPENDENCY RESOLUTION - All crates MUST use these pinned versions
+# =============================================================================
 [workspace.dependencies]
-# Core dependencies
-bumpalo = { version = "3.14", features = ["allocator_api"] }
-crossbeam-utils = "0.8"
-parking_lot = "0.12"
-tokio = { version = "1.35", features = ["full"] }
-tracing = "0.1"
-thiserror = "1.0"
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
+# -----------------------------------------------------------------------------
+# ASYNC RUNTIME (Tokio) - Unified version across all crates
+# Features: rt-multi-thread for HFT, macros for async/await, net for TCP/UDP, sync for channels
+# -----------------------------------------------------------------------------
+tokio = { version = "1.35", features = ["full", "rt-multi-thread", "macros", "net", "sync", "time", "fs", "io-util"] }
 
-# FFI and Python bindings
+# -----------------------------------------------------------------------------
+# WEB FRAMEWORK (Axum + Tower) - Stage 1 Telemetry WebSocket Bridge
+# -----------------------------------------------------------------------------
+axum = { version = "0.7", features = ["ws", "json", "multipart"] }
+tower = "0.4"
+tower-http = { version = "0.5", features = ["cors", "trace", "compression-gzip"] }
+tokio-stream = "0.1"
+
+# -----------------------------------------------------------------------------
+# PYTHON FFI (PyO3) - Zero-cost Rust/Python boundaries
+# CRITICAL: abi3-py310 ensures stable ABI across Python 3.10+
+# -----------------------------------------------------------------------------
 pyo3 = { version = "0.20", features = ["extension-module", "abi3-py310"] }
 pyo3-asyncio = { version = "0.20", features = ["tokio-runtime"] }
+numpy = "0.20"
 
-# High-frequency trading specific
-rdkafka = { version = "0.36", features = ["cmake-build"] }
-pcap = "2.0"
+# -----------------------------------------------------------------------------
+# SERIALIZATION - Binary telemetry for UI (zero-allocation hot paths)
+# -----------------------------------------------------------------------------
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+bincode = "1.3"
+rmp-serde = "1.1"
+simd-json = "0.13"
 
-# Benchmarking and testing
+# -----------------------------------------------------------------------------
+# SIMD ACCELERATION - Stage 18/28 vectorized operations
+# -----------------------------------------------------------------------------
+wide = "0.7"
+stdsimd = "0.1"
+
+# -----------------------------------------------------------------------------
+# MEMORY & CONCURRENCY - Lock-free data structures
+# -----------------------------------------------------------------------------
+bumpalo = { version = "3.14", features = ["allocator_api"] }
+crossbeam = "0.8"
+crossbeam-utils = "0.8"
+parking_lot = "0.12"
+ringbuf = "0.3"
+
+# -----------------------------------------------------------------------------
+# ERROR HANDLING & LOGGING
+# -----------------------------------------------------------------------------
+thiserror = "1.0"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+
+# -----------------------------------------------------------------------------
+# TIME & NUMBERS
+# -----------------------------------------------------------------------------
+chrono = "0.4"
+num-bigint = "0.4"
+num-traits = "0.2"
+num-complex = "0.4"
+
+# -----------------------------------------------------------------------------
+# MATH & STATISTICS
+# -----------------------------------------------------------------------------
+nalgebra = { version = "0.32", features = ["serde-serialize"] }
+ndarray = { version = "0.15", features = ["serde", "rayon"] }
+rand = "0.8"
+rand_distr = "0.4"
+rand_chacha = "0.3"
+rayon = "1.8"
+statrs = "0.16"
+
+# -----------------------------------------------------------------------------
+# CRYPTOGRAPHY
+# -----------------------------------------------------------------------------
+sha2 = "0.10"
+sha3 = "0.10"
+blake3 = "1.5"
+k256 = "0.13"
+
+# -----------------------------------------------------------------------------
+# BENCHMARKING & TESTING
+# -----------------------------------------------------------------------------
 criterion = "0.5"
 proptest = "1.4"
 
 [profile.release]
+# Maximum optimization for HFT performance
 opt-level = 3
+# Fat LTO for cross-crate inlining
 lto = "fat"
+# Single codegen unit for maximum optimization
 codegen-units = 1
+# Abort on panic - no unwinding in production
 panic = "abort"
-strip = true
+# Strip debug symbols
+strip = "debuginfo"
+
+[profile.release-debug]
+inherits = "release"
+debug = true
+strip = false
+
+[profile.bench]
+inherits = "release"
+debug = true
 
 [profile.dev]
 opt-level = 0
 debug = true
 panic = "unwind"
+incremental = true
+
+[profile.dev.package."*"]
+# Optimize dependencies even in debug mode
+opt-level = 2
