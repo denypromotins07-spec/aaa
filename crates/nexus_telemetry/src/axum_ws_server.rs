@@ -4,14 +4,23 @@
 //! isolated from the trading engine's hot paths. No shared resources, no
 //! contention, zero impact on trading latency.
 //!
+//! ROOT CAUSE FIXES APPLIED:
+//! 1. Thread-Local Buffer Leaks: Uses ZeroAllocSerializer with strict bounds checking
+//!    and chunking mechanism for large payloads (see broadcast::zero_alloc_serializer)
+//! 2. Axum Task Starvation: Server MUST be spawned on dedicated Tokio runtime
+//!    (see start_telemetry_server_dedicated_runtime function)
+//! 3. Guillotine False Positives: SlowClientGuillotine implements grace period
+//!    timeout before severing connections (see backpressure::slow_client_guillotine)
+//!
 //! Architecture:
 //! - Dedicated runtime with `#[tokio::main(flavor = "multi_thread")]`
 //! - WebSocket upgrade handler with binary MessagePack support
 //! - Broadcast task that reads from SPSC buffer and fans out to clients
 //! - Graceful disconnect handling with client cleanup
+//! - Backpressure protection via SlowClientGuillotine
 
 use axum::{
-    extract::ws::{WebSocket, WebSocketUpgrade},
+    extract::ws::{WebSocket, WebSocketUpgrade, Message as WsMessage},
     response::IntoResponse,
     routing::get,
     Router,
@@ -20,9 +29,12 @@ use tokio::{sync::broadcast, task::JoinHandle};
 use tracing::{info, warn, error};
 use std::net::SocketAddr;
 use std::sync::Arc;
+use std::time::Duration;
 
-use crate::binary_serializer::{WsMessage, TelemetryFrame};
+use crate::binary_serializer::{WsMessage as ProtocolMessage, TelemetryFrame};
 use crate::lock_free_spsc_broadcaster::{ConsumerHandle, BroadcasterConfig};
+use crate::backpressure::slow_client_guillotine::{SlowClientGuillotine, GuillotineConfig};
+use crate::broadcast::zero_alloc_serializer::ZeroAllocSerializer;
 
 /// Internal shared state for the WebSocket server
 struct ServerState {
@@ -131,37 +143,78 @@ async fn ws_handler(
     ws.on_upgrade(move |socket| handle_socket(socket, state))
 }
 
-/// Handle individual WebSocket connections
+/// Handle individual WebSocket connections with backpressure protection
 async fn handle_socket(socket: WebSocket, state: Arc<ServerState>) {
     use tokio::sync::mpsc;
-    use axum::extract::ws::Message as WsMsg;
     
     let (mut sender, mut receiver) = socket.split();
     
-    // Register client and get initial sequence
-    let (client_tx, mut client_rx) = mpsc::channel::<WsMessage>(1024);
-    let client_id = state.consumer.register_client(client_tx);
+    // Create guillotine for this client with grace period protection
+    let guillotine_config = GuillotineConfig {
+        max_consecutive_failures: 10,
+        grace_period: Duration::from_millis(100), // 100ms grace before counting failures
+        max_unresponsive_time: Duration::from_secs(5),
+        max_pending_messages: 2048,
+    };
+    let guillotine = SlowClientGuillotine::new(guillotine_config);
+    let client_id = guillotine.register_client();
     
-    if client_id == u64::MAX {
-        warn!("Client rejected - max capacity reached");
+    // Register with broadcaster using bounded channel
+    let (client_tx, mut client_rx) = mpsc::channel::<ProtocolMessage>(1024);
+    let broadcaster_client_id = state.consumer.register_client(client_tx);
+    
+    if broadcaster_client_id == u64::MAX {
+        warn!("Client rejected - broadcaster max capacity reached");
         return;
     }
 
-    info!("Client connected, id={}", client_id);
+    info!("Client connected, id={}, broadcaster_id={}", client_id, broadcaster_client_id);
 
-    // Task to forward messages from broadcaster to WebSocket
+    // Task to forward messages from broadcaster to WebSocket with zero-alloc serialization
     let send_task = tokio::spawn(async move {
         while let Some(msg) = client_rx.recv().await {
-            let bytes = match msg.to_msgpack_bytes() {
-                Ok(b) => b,
-                Err(e) => {
-                    error!("Failed to serialize message: {:?}", e);
-                    continue;
+            // Use ZeroAllocSerializer for binary serialization
+            let bytes = match &msg {
+                ProtocolMessage::Telemetry(frame) => {
+                    match ZeroAllocSerializer::serialize_frame(frame) {
+                        Ok(b) => b,
+                        Err(e) => {
+                            warn!("Serialization failed (payload too large?): {:?}", e);
+                            // Fallback to regular serialization for oversized payloads
+                            match msg.to_msgpack_bytes() {
+                                Ok(b) => b,
+                                Err(e2) => {
+                                    error!("Fallback serialization also failed: {:?}", e2);
+                                    continue;
+                                }
+                            }
+                        }
+                    }
+                }
+                _ => {
+                    // Non-telemetry messages use standard serialization
+                    match msg.to_msgpack_bytes() {
+                        Ok(b) => b,
+                        Err(e) => {
+                            error!("Failed to serialize message: {:?}", e);
+                            continue;
+                        }
+                    }
                 }
             };
             
-            if sender.send(WsMsg::Binary(bytes)).await.is_err() {
-                break; // Client disconnected
+            // Try to send - if this fails repeatedly, guillotine will disconnect
+            match sender.send(WsMessage::Binary(bytes)).await {
+                Ok(()) => {
+                    guillotine.record_success(client_id);
+                }
+                Err(_) => {
+                    // Send failed - record failure and check if we should disconnect
+                    if guillotine.record_failure(client_id) {
+                        warn!("Client {} marked for disconnection by guillotine", client_id);
+                        break;
+                    }
+                }
             }
         }
     });
@@ -172,8 +225,8 @@ async fn handle_socket(socket: WebSocket, state: Arc<ServerState>) {
             match msg {
                 axum::extract::ws::Message::Text(text) => {
                     // Parse as JSON control message
-                    match WsMessage::from_json_string(&text) {
-                        Ok(WsMessage::Control(ctrl)) => {
+                    match ProtocolMessage::from_json_string(&text) {
+                        Ok(ProtocolMessage::Control(ctrl)) => {
                             info!("Received control command: {:?}", ctrl.command);
                             // Handle control commands here
                         }
@@ -197,8 +250,12 @@ async fn handle_socket(socket: WebSocket, state: Arc<ServerState>) {
     }
 
     // Cleanup on disconnect - prevents buffer backup
-    state.consumer.unregister_client(client_id as usize);
-    info!("Client disconnected, id={}", client_id);
+    let stats = guillotine.unregister_client(client_id);
+    if let Some(s) = stats {
+        info!("Client {} disconnected: sent={}, dropped={}", client_id, s.total_sent, s.total_dropped);
+    }
+    state.consumer.unregister_client(broadcaster_client_id as usize);
+    info!("Client {} removed from broadcaster", broadcaster_client_id);
 }
 
 /// Main entry point for running the telemetry server standalone
