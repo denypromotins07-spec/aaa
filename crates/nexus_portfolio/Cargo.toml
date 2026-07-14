@@ -1,0 +1,13 @@
+[package]
+name = "nexus_portfolio"
+version = "0.1.0"
+edition = "2021"
+description = "Live Portfolio Margin, Funding Rate Harvesting & Cross-Exchange Arbitrage for NEXUS-OMEGA"
+
+[dependencies]
+# No external dependencies needed - pure atomic operations
+
+[dev-dependencies]
+
+[features]
+default = []
