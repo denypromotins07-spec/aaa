@@ -1,0 +1,63 @@
+[package]
+name = "nexus_reconcile"
+version = "0.1.0"
+edition = "2021"
+description = "Shadow Reconciliation Ledger, Implementation Shortfall & Walk-Forward Micro-Backtesting for NEXUS-OMEGA"
+
+[dependencies]
+# Async runtime
+tokio = { version = "1.35", features = ["full"] }
+
+# Atomic operations & lock-free structures
+crossbeam = "0.8"
+arc-swap = "1.6"
+atomic = "0.6"
+
+# Synchronization primitives
+parking_lot = "0.12"
+
+# Time handling
+instant = "0.1"
+chrono = "0.4"
+
+# Error handling
+thiserror = "1.0"
+anyhow = "1.0"
+
+# Logging
+log = "0.4"
+tracing = "0.1"
+
+# HTTP client for REST polling (used by shadow_state_poller)
+reqwest = { version = "0.11", features = ["json", "rustls-tls"], default-features = false }
+
+# Cryptography for API signatures
+hmac = "0.12"
+sha2 = "0.10"
+hex = "0.4"
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# Math utilities
+num-bigint = "0.4"
+num-traits = "0.2"
+
+# Random number generation (for jitter)
+rand = "0.8"
+
+# Lazy initialization
+once_cell = "1.19"
+
+# Local crates (placeholder paths - adjust as needed)
+# nexus_oms = { path = "../nexus_oms" }
+# nexus_alpha = { path = "../nexus_alpha" }
+# nexus_risk = { path = "../nexus_risk" }
+
+[dev-dependencies]
+criterion = "0.5"
+
+[[bench]]
+name = "reconcile_bench"
+harness = false
