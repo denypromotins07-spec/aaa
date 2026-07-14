@@ -2,9 +2,13 @@
 
 mod telemetry_aggregator;
 mod pnl_attribution;
+pub mod shadow_inference_engine;
+pub mod parallel_regime_scorer;
 
 pub use telemetry_aggregator::TelemetryAggregator;
 pub use pnl_attribution::PnLAttribution;
+pub use shadow_inference_engine::{ShadowInferenceEngine, ShadowEngineConfig, ModelRegime, ShadowPrediction};
+pub use parallel_regime_scorer::{RegimeScorer, RegimeScore};
 
 use crate::MLOpsError;
 

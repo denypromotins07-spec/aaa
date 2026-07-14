@@ -2,12 +2,14 @@
 # Compiled and build artifacts
 *.o
 *.obj
+*.exe
+*.dll
+*.so
+*.a
 *.out
-target/
 
 # Dependencies
-Cargo.lock
-**/target/
+target/
 
 # Logs and temp files
 *.log
@@ -22,8 +24,18 @@ coverage/
 htmlcov/
 .coverage
 
+# MyPy cache
+.mypy_cache/
+
+# Pytest cache
+.pytest_cache/
+
 # Environment
 .env
 .env.local
-*.env.*
+.env.*
+
+# OS specific
+.DS_Store
+Thumbs.db
 ```

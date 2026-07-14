@@ -12,13 +12,15 @@ pub mod checkpoint;
 pub mod registry;
 pub mod inference;
 pub mod deployment;
+pub mod hotswap;
 
-pub use drift::{AdwinDetector, PageHinkleyTest, KSDivergence};
-pub use shadow::{ShadowOrchestrator, TelemetryAggregator, PnLAttribution};
+pub use drift::{AdwinDetector, PageHinkleyTest, KSDivergence, DriftStateMachine, DriftState};
+pub use shadow::{ShadowOrchestrator, TelemetryAggregator, PnLAttribution, ShadowInferenceEngine, RegimeScorer};
 pub use checkpoint::AtomicWeightSaver;
 pub use registry::ModelRegistry;
 pub use inference::AtomicModelRouter;
 pub use deployment::CanaryRouter;
+pub use hotswap::{AtomicWeightSwapper, ModelWeights, EpochReclaimer};
 
 use thiserror::Error;
 
