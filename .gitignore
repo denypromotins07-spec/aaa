@@ -3,7 +3,7 @@
 target/
 Cargo.lock
 **/*.rs.bk
-**/*.tmp
+**/*.rlib
 
 # Dependencies
 vendor/
@@ -11,7 +11,6 @@ vendor/
 # Logs and temp files
 *.log
 *.tmp
-*.swp
 
 # Environment
 .env
@@ -27,4 +26,12 @@ vendor/
 # OS generated files
 .DS_Store
 Thumbs.db
+
+# Build artifacts
+**/debug/
+**/release/
+**/deps/
+**/examples/
+**/incremental/
+**/target/
 ```
