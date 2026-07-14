@@ -1,0 +1,20 @@
+[package]
+name = "nexus_orchestrator"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+tokio = { version = "1.35", features = ["full"] }
+tracing = "0.1"
+thiserror = "1.0"
+serde = { version = "1.0", features = ["derive"] }
+chrono = "0.4"
+futures-util = "0.3"
+nexus_security = { path = "../nexus_security" }
+nexus_swarm = { path = "../nexus_swarm" }
+nexus_ingestion = { path = "../nexus_ingestion" }
+nexus_alpha = { path = "../nexus_alpha" }
+nexus_oms = { path = "../nexus_oms" }
+
+[lib]
+path = "src/lib.rs"

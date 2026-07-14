@@ -9,6 +9,14 @@ members = [
     "crates/nexus_kardashev",
     "crates/nexus_ingest",
     "crates/nexus_orderbook",
+    "crates/nexus_orchestrator",
+    "crates/nexus_security",
+    "crates/nexus_swarm",
+    "crates/nexus_telemetry",
+    "crates/nexus_alpha",
+    "crates/nexus_oms",
+    "crates/nexus_ingestion",
+    "crates/nexus_memory_arena",
 ]
 
 [workspace.package]
